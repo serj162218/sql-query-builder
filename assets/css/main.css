@@ -1,0 +1,9 @@
+.Table{
+    border-radius: 5px;
+    border-color:grey;
+    border-style:solid;
+    width:25%;
+}
+#ModeDiv{
+    padding-top:5%;
+}

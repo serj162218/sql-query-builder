@@ -9,15 +9,46 @@
     <!-- 引用Popper.js -->
     <script src="assets/library/popper.js"></script>
     <!-- 引用Bootstrap -->
+    
     <link rel="stylesheet" href="assets/library/bootstrap/css/bootstrap.min.css">
     <script src="assets/library/bootstrap/js/bootstrap.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="assets/library/fontawesome/css/all.css">
+    <script src="assets/library/fontawesome/js/all.js"></script>
     <!-- 自定義 -->
     <script src="assets/js/main.js"></script>
+    <link rel="stylesheet" href="assets/css/main.css">
 </head>
+<style>
+</style>
 <body>
-    <button class="btn btn-primary" id="selectBtn">Select</button>
-    <button class="btn btn-info" id="insertBtn">Insert</button>
-    <button class="btn btn-success" id="updateBtn">Update</button>
-    <button class="btn btn-danger" id="deleteBtn">Delete</button>
+    <div class="container">
+        <!-- 最外層 -->
+        <div class="container col-md-12">
+            <!-- 使用說明 -->
+            <pre>
+                使用說明：
+                1. 點選 <i class="far fa-plus-square"></i> 符號 產生資料表
+                2. 點選資料表內的 <i class="far fa-plus-square"></i> 符號新增資料欄位
+                3. 選取欲查詢的資料欄位
+                4. 點選查詢模式的按鈕
+                5. 點擊 Start 產生語法
+            </pre>
+        </div>
+        <div class="container col-md-12" id="TableDiv">
+            <!-- Table -->
+            <button data-name="addTable" data-type="main">+</button> <!-- 新增資料表按鈕 -->
+        </div>
+        <div class="container" id="ModeDiv">
+            <!-- Query 模式 -->
+            <button class="btn btn-primary" id="selectBtn">Select</button>
+            <button class="btn btn-info" id="insertBtn">Insert</button>
+            <button class="btn btn-success" id="updateBtn">Update</button>
+            <button class="btn btn-danger" id="deleteBtn">Delete</button>
+        </div>
+        <div class="container">
+            <!-- 產生結果 -->
+        </div>
+    </div>
 </body>
 </html>
