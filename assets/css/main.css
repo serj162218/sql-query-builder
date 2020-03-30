@@ -7,3 +7,6 @@
 #ModeDiv{
     padding-top:5%;
 }
+[data-name=deleteTable]{
+    float:right;
+}
