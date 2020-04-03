@@ -17,7 +17,6 @@
     <script src="assets/library/fontawesome/js/all.js"></script>
     <!-- 自定義 -->
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/selectQuery.js"></script>
     <link rel="stylesheet" href="assets/css/main.css">
 </head>
 <style>
@@ -42,10 +41,14 @@
         </div>
         <div class="container" id="ModeDiv">
             <!-- Query 模式 -->
-            <button class="btn btn-primary" id="SelectBtn">Select</button>
-            <button class="btn btn-info" id="InsertBtn">Insert</button>
-            <button class="btn btn-success" id="UpdateBtn">Update</button>
-            <button class="btn btn-danger" id="DeleteBtn">Delete</button>
+            <button class="btn btn-primary SelectTable" id="SelectBtn" data-mode="multi">Select</button>
+            <button class="btn btn-info SelectTable" id="InsertBtn" data-mode="simple">Insert</button>
+            <button class="btn btn-success SelectTable" id="UpdateBtn" data-mode="multi">Update</button>
+            <button class="btn btn-danger SelectTable" id="DeleteBtn" data-mode="multi">Delete</button>
+        </div>
+        <div class="container col-md-12" id="SelectTableDiv">
+            <!-- TableUseForSelecting -->
+            
         </div>
         <div class="container">
             <!-- 產生結果 -->
