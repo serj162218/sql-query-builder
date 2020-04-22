@@ -1,115 +1,253 @@
 ;
 (function (global){
     $().ready(function(){
-        $("[data-name=addTable]").click(createMainTable);
-        $("body").on("click","[data-name=deleteTable]",deleteMainTable);
-        $("body").on("click","[data-name=addColumn]",addTableRow);
-        $("body").on("click","[data-name=deleteColumn]",deleteTableRow);
+        $("[data-name=addInputTable]").click(createInputTable);
     });
     let dataid = 0;
     let mode = null;
-    function createMainTable(){
+    let TableList = {};
+    function createInputTable(){
         // 新建資料表
-        switch($(this).attr("data-type")){
-            case "main":
-                addMainTable();
-                break;
-            case 1:
-                break;
-            default:
-                addMainTable();
-        }
+        let table = createTable();
+        $("#InputTableDiv").append(table.element['input']);
+        
     }
-    let MainTable = function(){
+    function createTable(){
+        let table = new Table();
+        table.id = dataid;
+        TableList[dataid] = table;
+        let element = InputTableElement();
+        table.setElement(element,"input");
+        InputElementSetEvents(table);
+        dataid++;
+        return table;
+    }
+    function InputElementSetEvents(table){
+        table.element['input'].on("click","[data-name=addColumn]",{table},addInputColumn);
+        table.element['input'].on("click","[data-name=deleteTable]",{table},deleteTable);
+        table.element['input'].on("change","[data-name=TableName]",{table},ChangeTableName);
+        table.RegisterNameListener(function(val){
+            //TODO 當TableName改變時，改變此Table的elements裡面的全部element的TableName
+        });
+        table.RegisterDeleteListener(function(val){
+            //TODO 當TableName改變時，改變此Table的elements裡面的全部element的TableName
+            table.element['input'].remove();
+        });
+    }
+    let InputTableElement = function(){
         return $($.parseHTML(`
-        <div class="col-md-3 MainTable Table" data-id="${dataid}"> 
+        <div class="col-md-3 Table"> 
             <input type="text" data-name="TableName">
             <!-- 資料表的地方 -->
-            <button data-name="addColumn" data-id="${dataid}" data-type="Main">+</button> <!-- 新增資料欄位按鈕 -->
-            <button data-name="deleteTable" data-id="${dataid}" data-type="Main">-</button> <!-- 刪除資料表按鈕 -->
+            <button data-name="addColumn">+</button><!-- 新增資料欄位按鈕 -->
+            <button data-name="deleteTable">-</button> <!-- 刪除資料表按鈕 -->
         </div>`));
     }
-    let Column = function(id){
+    function deleteTable(event){
+        let table = event.data.table;
+        table.delete = true;
+    }
+    function getObjectLength(object = {}){
+        let length = Object.keys(object).length;
+        return length;
+    }
+    function addInputColumn(event){
+        let table = event.data.table;
+        let ColumnID = getObjectLength(table.columns);
+        let column = new Column();
+        column.id = table.id;
+        column.uid = ColumnID;
+        column.setElement(ColumnElement(),"input");
+        table.columns[ColumnID] = column;
+        table.element['input'].append(column.element['input']);
+        InputColumnSetEvents(table,column);
+    }
+    let ColumnElement = function(){
         return $($.parseHTML(`
-        <div class="container" data-name="Column" data-id=${id}>
+        <div class="container" data-name="Column">
             <!-- 資料欄位 -->
             <input type="text" class="col-md-10">
             <button data-name="deleteColumn">X</button>
         </div>
         `));
     }
-    function addMainTable(){
-        $("#MainTableDiv").append(MainTable);
-        syncTableCount();
+    class Column{
+        constructor(){
+            this.element = {};
+        }
+        setElement(element,name){
+            this.element[name] = element;
+        };
+        set name(val){
+            this.nameInterval = val;
+            this.nameListener(val);
+        }
+        get name(){
+            return this.nameInterval;
+        }
+        nameListener(val){};
+        RegisterNameListener(listener){
+            this.nameListener = listener;
+        }
+        set id(val){
+            this.idInterval = val;
+        }
+        get id(){
+            return this.idInterval;
+        }
+        set uid(val){
+            this.uidInterval = val;
+        }
+        get uid(){
+            return this.uidInterval;
+        }
+        set delete(val){
+            this.isdelete = true;
+            this.deleteListener(true);
+        }
+        deleteListener(val){};
+        RegisterDeleteListener(listener){
+            this.deleteListener = listener;
+        }
     }
-    function syncTableCount(){
-        dataid++;
+    function InputColumnSetEvents(table,column){
+        column.element["input"].on("change","[type=text]",{table,column},ColumnInputChange);
+        column.element["input"].on("click","[data-name=deleteColumn]",{table,column},deleteColumn);
+        column.RegisterNameListener(function(val){
+            //TODO 當TableName改變時，改變此Table的elements裡面的全部element的TableName
+        });
+        column.RegisterDeleteListener(function(val){
+            //TODO 當TableName改變時，改變此Table的elements裡面的全部element的TableName
+            column.element['input'].remove();
+        });
     }
-    function deleteMainTable(){
-        $(this).closest(".MainTable").remove();
-        syncTableCount();
+    function ColumnInputChange(event){
+        let column = event.data.column;
+        column.name = $(this).val();
     }
-    function addTableRow(){
-        let id = $(this).attr("data-id");
-        let table = $(`.MainTable[data-id=${id}]`);
-        let ColumnID = table.children("[data-name=Column]").length;
-        table.append(Column(ColumnID));
+    function deleteColumn(event){
+        let column = event.data.column;
+        column.delete = true;
     }
-    function deleteTableRow(){
-        $(this).closest("[data-name=Column]").remove();
+    function ChangeTableName(event){
+        let table = event.data.table;
+        table.name = $(this).val();
     }
-    
+
+    class Table{
+        constructor(){
+            this.element = {};
+            this.columns = {};
+            this.isdelete = false;
+        }
+        setElement(element,name){
+            this.element[name] = element;
+        };
+        set name(val){
+            this.nameInterval = val;
+            this.nameListener(val);
+        }
+        get name(){
+            return this.nameInterval;
+        }
+        nameListener(val){};
+        RegisterNameListener(listener){
+            this.nameListener = listener;
+        }
+        set id(val){
+            this.idInterval = val;
+        }
+        get id(){
+            return this.idInterval;
+        }
+        set delete(val){
+            this.isdelete = true;
+            this.deleteListener(true);
+        }
+        deleteListener(val){};
+        RegisterDeleteListener(listener){
+            this.deleteListener = listener;
+        }
+    }
+    /*
     $().ready(function(){
         $("#ModeDiv > button").click(createSelectTable);
     });
     function createSelectTable(){
-        renderSelectTable(mode = $(this).attr("data-mode"));
+        mode = $(this).attr("data-mode");
+        renderMainTable();
     }
-    function renderSelectTable(mode){
-        clear($("#SelectTableDiv"));
-        clear($("#JoinTableDiv"));
-        clear($("#JoinOnTableDiv"));
-        $.each($(".MainTable"),function(i,e){
-            e = $(e);
-            let id = $(e).attr("data-id");
-            let table = Table(id,"SelectTable");
-            let value = $(e).children("[type=text]").val();
-            TableAppendText(table,value);
-            $("#SelectTableDiv").append(table);
+    function renderMainTable(){
+        for(i in TableList){
+            console.log(TableList[i]);
+        }
+    }*/
+    // function renderMainTable(){
+    //     // clear($("#SelectTableDiv"));
+    //     // clear($("#JoinTableDiv"));
+    //     // clear($("#JoinOnTableDiv"));
+    //     $.each(TableList,function(i,e){
+    //         e = $(e);
+    //         let table = new Table();
+    //         table.setID($(e).attr("data-id"));
+    //         // table.setElement(TableElement(table.id,"SelectTable"));
+    //         table.setName($(e).children("[type=text]").val());
+    //         table.setElement(TableElement(table));
+    //         insertTableToTableList(table);
+    //         $("#SelectTableDiv").append(table.element);
             
-            if(mode == "multi"){
-                header = multiSelectTableHeader(id);
-                $("#JoinOnBtnDiv").html(`<button class="btn btn-warning" id="JoinOnBtn"> On 條件</button>`);
-                $("#WhereTableBtnDiv").html(`<button class="btn btn-warning" id="WhereBtn"> Where 條件</button>`);
-            }else if(mode == "simple"){
-                header = simpleSelectTableHeader(id);
-                $("#JoinOnBtnDiv").html(``);
-                $("#WhereTableBtnDiv").html(`<button class="btn btn-warning" id="WhereBtn"> Where 條件</button>`);
-                
-            }
-            table.prepend(header);
-        });
+    //         if(isModeCanChooseMultipleTable()){
+    //             header = multiSelectTableHeader(table.id);
+    //             $("#JoinOnBtnDiv").html(JoinOnButton);
+    //             $("#WhereTableBtnDiv").html(WhereButton);
+    //         }else{
+    //             header = simpleSelectTableHeader(table.id);
+    //             $("#JoinOnBtnDiv").html(``);
+    //             $("#WhereTableBtnDiv").html(``);
+    //         }
+    //         table.element.prepend(header);
+    //     });
+    // }
+    /*
+    function isModeCanChooseMultipleTable(){
+        if(mode != "insert"){
+            return true;
+        }else{
+            return false;
+        }
     }
-    let Table = function(id,TableName){
+    // let TableElement = function(id,TableName){
+    //     return $($.parseHTML(`
+    //     <div class="col-md-3 Table ${TableName}" data-id="${id}">
+    //     </div>`));
+    // }
+    let TableElement = function(table){
         return $($.parseHTML(`
-        <div class="col-md-3 Table ${TableName}" data-id="${id}">
+        <div class="col-md-3 Table" data-id="${table.id}">
+        <text>${table.name}</text>
         </div>`));
     }
     let multiSelectTableHeader = function(id){
         return $($.parseHTML(`
-            <input type="radio" name="SelectTable" data-id=${id} data-mode="multi">
+            <input type="radio" name="SelectTable" data-id=${id}>
         `));
     }
     let simpleSelectTableHeader = function(id){
         return $($.parseHTML(`
-            <input type="radio" name="SelectTable" data-id=${id} data-mode="simple">
+            <input type="radio" name="SelectTable" data-id=${id}>
         `));
+    }
+    let WhereButton = function(){
+        return $($.parseHTML(`<button class="btn btn-warning" id="WhereBtn"> Where 條件</button>`));
+    }
+    let JoinOnButton = function(){
+        return $($.parseHTML(`<button class="btn btn-warning" id="JoinOnBtn"> On 條件</button>`));
     }
     $().ready(function(){
         $("body").on("click",`[type="radio"][name="SelectTable"]`,isNeedJoinTable);
     });
     function isNeedJoinTable(){
-        if(mode == "simple") return ;
+        if(!isModeCanChooseMultipleTable()) return ;
         RenderJoinTable($(this));
     }
     function RenderJoinTable(dom){
@@ -118,7 +256,7 @@
         $.each($(".MainTable"),function(i,e){
             e = $(e);
             let id = $(e).attr("data-id");
-            let table = Table(id,"JoinTable");
+            let table = TableElement(id,"JoinTable");
             let option = JoinOption(id);
             if(dom.attr('data-id')==e.attr('data-id')) option = MainTableOption(id);
             table.prepend(option);
@@ -176,7 +314,7 @@
                 return;
             }
             let id = $(this).attr("data-id");
-            let table = Table(id,"JoinOnTable");
+            let table = TableElement(id,"JoinOnTable");
             let TableName = $(`.SelectTable[data-id=${id}]`).children("text").text();
             TableAppendText(table,TableName);
             table.append(`<br>`);
@@ -257,14 +395,16 @@
         `));
     };
     //--- 
-    function TableAppendText(table,val){
-        table.append("<text></text>");
-        table.children("text").text(val);
-    }
+    // function TableAppendText(table,val){
+    //     table.append("<text></text>");
+    //     table.children("text").text(val);
+    // }
     function clear(dom){
         dom.empty();
     }
     function remove(dom){
         dom.remove();
     }
+    */
+
 })(this);
