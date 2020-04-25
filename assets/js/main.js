@@ -32,6 +32,7 @@
             }
         });
         table.RegisterDeleteListener(function(val){
+            if(val == false) return;
             for(i in this.element){
                 this.element[i].remove();
             }
@@ -62,7 +63,7 @@
     }
     function deleteTable(event){
         let table = event.data.table;
-        table.delete = true;
+        table.delete();
     }
     function getObjectLength(object = {}){
         let length = Object.keys(object).length;
@@ -93,7 +94,6 @@
             this.element = {};
             this.name = "";
             this.selected = false;
-            this.isdelete = false;
         }
         setElement(element,name){
             this.element[name] = element;
@@ -121,8 +121,7 @@
         get uid(){
             return this.uidInterval;
         }
-        set delete(val){
-            this.isdelete = true;
+        delete(){
             this.deleteListener(true);
         }
         deleteListener(val){};
@@ -140,6 +139,7 @@
             //TODO 當TableName改變時，改變此Table的elements裡面的全部element的TableName
         });
         column.RegisterDeleteListener(function(val){
+            if(val == false) return;
             //TODO 當TableName改變時，改變此Table的elements裡面的全部element的TableName
             for(i in this.element){
                 this.element[i].remove();
@@ -153,7 +153,7 @@
     }
     function deleteColumn(event){
         let column = event.data.column;
-        column.delete = true;
+        column.delete();
     }
     function ChangeTableName(event){
         let table = event.data.table;
@@ -164,7 +164,6 @@
         constructor(){
             this.element = {};
             this.columns = {};
-            this.isdelete = false;
             this.name = "";
             this.selected = false;
         }
@@ -196,12 +195,8 @@
         get id(){
             return this.idInterval;
         }
-        set delete(val){
-            this.isdelete = true;
+        delete(){
             this.deleteListener(true);
-        }
-        get delete(){
-            return this.isdelete;
         }
         deleteListener(val){};
         RegisterDeleteListener(listener){
@@ -223,9 +218,6 @@
         }
         for(i in TableList){
             let table = TableList[i];
-            if(table.delete){
-                continue;
-            }
             if(typeof table.element['text'] != "undefined"){
                 continue;
             }
@@ -268,7 +260,6 @@
         }
         let table = event.data.table;
         table.selected = true;
-        console.log(TableList);
     }
     let CheckboxColumn = function(){
         return $($.parseHTML(`
