@@ -2,11 +2,19 @@
     border-radius: 5px;
     border-color:grey;
     border-style:solid;
-    width:25%;
 }
 #ModeDiv{
     padding-top:5%;
 }
 [data-name=deleteTable]{
     float:right;
+}
+#RightDiv{
+    float: right;
+    position: fixed;
+    z-index: 20;
+    _position: absolute;
+    top: 10%;
+    left: 50%;
+    min-width: 50%;
 }

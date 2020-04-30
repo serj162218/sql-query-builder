@@ -8,8 +8,9 @@
     <script src="assets/library/jquery 3.4.1.js"></script>
     <!-- 引用Popper.js -->
     <script src="assets/library/popper.js"></script>
+    <!-- 引用util.js -->
+    <script src="assets/library/popper.js"></script>
     <!-- 引用Bootstrap -->
-    
     <link rel="stylesheet" href="assets/library/bootstrap/css/bootstrap.min.css">
     <script src="assets/library/bootstrap/js/bootstrap.min.js"></script>
     <!-- FontAwesome -->
@@ -28,49 +29,56 @@
             <!-- 使用說明 -->
             使用說明：
             <ol>
-                <li>點選 <i class="far fa-plus-square"></i> 符號 產生資料表</li>
-                <li>點選資料表內的 <i class="far fa-plus-square"></i> 符號新增資料欄位</li>
-                <li>點選查詢模式的按鈕</li>
-                <li>選擇主要的資料表</li>
-                <li>勾選要查詢的資料欄位</li>
-                <li>選擇是否有Where的條件，若沒有可跳過</li>
-                <li>選擇是否要Join其他資料表，若沒有可跳過</li>
+                <li></li>
+                <li>點選 ☑ 符號新建一個資料表</li>
+                <li>拖移資料表的標題至主要的資料表</li>
+                <li>拖移要查詢的資料欄位</li>
+                <li>點選+增加條件，若沒有條件可略過</li>
+                <li>拖移其他要查詢的資料表的標題至，</li>
                 <li>點擊 Start 產生語法</li>
                 <li>點擊 語法模式 可查看不同框架的語法或資料庫的語法</li>
             </ol>
         </div>
+        <h3>①</h3>
         <div class="container col-md-12 " id="InputTableDiv">
-            <!-- Table -->
-            <button data-name="addInputTable">+</button> <!-- 新增資料表按鈕 -->
         </div>
-        <div class="container" id="ModeDiv">
-            <!-- Query 模式 -->
-            <button class="btn btn-primary SelectTable" id="SelectBtn" data-mode="select">Select</button>
-            <button class="btn btn-info SelectTable" id="InsertBtn" data-mode="insert">Insert</button>
-            <button class="btn btn-success SelectTable" id="UpdateBtn" data-mode="update">Update</button>
-            <button class="btn btn-danger SelectTable" id="DeleteBtn" data-mode="delete">Delete</button>
+        <h3>②</h3>
+        <div  class="container col-md-12" id="WhereTableDiv">
+            <h5>選擇主要的資料表與條件</h5>
+            <div class="col-md-3 Table">
+                <button data-name="addColumn">+</button>
+                <br>
+            </div>
         </div>
-        <div class="container col-md-12" id="SelectTableDiv">
-            <!-- TableUseForSelecting -->
-            
-        </div>
+        <h3>③</h3>
         <div class="container col-md-12" id="JoinTableDiv">
+            <h5>選擇其他資料表與條件（可以略過）</h5>
+            <div class="col-md-3 Table"> 
+                <button data-name="addColumn">+</button>
+                <br>
+            </div>
             <!-- TableUseForJoin -->
         </div>
-        <div class="container col-md-12" id="JoinOnBtnDiv">
-        </div>
-        <div  class="container col-md-12" id="JoinOnTableDiv">
-            
-        </div>
-        <div  class="container col-md-12" id="WhereTableBtnDiv">
-            
-        </div>
-        <div  class="container col-md-12" id="WhereTableDiv">
-            
-        </div>
-        <div class="container">
-            <!-- 產生結果 -->
+        <div id="RightDiv">
+            <ul class="nav nav-tabs" irole="tablist">
+                <li class="nav-item">
+                  <a class="nav-link active" id="SelectTable-tab" data-toggle="tab" href="#SelectTable" role="tab" aria-controls="SelectTable" aria-selected="true">資料表</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="QueryTable-tab" data-toggle="tab" href="#QueryTable" role="tab" aria-controls="QueryTable" aria-selected="false">Query</a>
+                </li>
+              </ul>
+              <div class="tab-content">
+                <div class="tab-pane fade show active container" role="tabpanel" aria-labelledby="SelectTable-tab" id="SelectTable">
+                    <div class="row">
+                    </div>
+                </div>
+                <div class="tab-pane fade container" id="QueryTable" role="tabpanel" aria-labelledby="QueryTable-tab">
+                    <!-- 產生結果 -->
+                </div>
+              </div>
         </div>
     </div>
+    
 </body>
 </html>
