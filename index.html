@@ -6,16 +6,11 @@
     <title>SQL Query Builder</title>
     <!-- 引用JQuery -->
     <script src="assets/library/jquery 3.4.1.js"></script>
-    <!-- 引用Popper.js -->
-    <script src="assets/library/popper.js"></script>
-    <!-- 引用util.js -->
-    <script src="assets/library/popper.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <!-- 引用Bootstrap -->
     <link rel="stylesheet" href="assets/library/bootstrap/css/bootstrap.min.css">
     <script src="assets/library/bootstrap/js/bootstrap.min.js"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="assets/library/fontawesome/css/all.css">
-    <script src="assets/library/fontawesome/js/all.js"></script>
     <!-- 自定義 -->
     <script src="assets/js/main.js"></script>
     <link rel="stylesheet" href="assets/css/main.css">
@@ -29,25 +24,34 @@
             <!-- 使用說明 -->
             使用說明：
             <ol>
-                <li></li>
                 <li>點選 ☑ 符號新建一個資料表</li>
                 <li>拖移資料表的標題至主要的資料表</li>
-                <li>拖移要查詢的資料欄位</li>
+                <li>拖移要查詢的資料欄位至②</li>
                 <li>點選+增加條件，若沒有條件可略過</li>
-                <li>拖移其他要查詢的資料表的標題至，</li>
+                <li>拖移其他要查詢的資料表的標題至③</li>
                 <li>點擊 Start 產生語法</li>
                 <li>點擊 語法模式 可查看不同框架的語法或資料庫的語法</li>
             </ol>
         </div>
         <h3>①</h3>
-        <div class="container col-md-12 " id="InputTableDiv">
+        <div class="container col-md-12" id="InputTableDiv">
         </div>
         <h3>②</h3>
-        <div  class="container col-md-12" id="WhereTableDiv">
+        <div  class="container col-md-12" id="MainTableDiv">
             <h5>選擇主要的資料表與條件</h5>
             <div class="col-md-3 Table">
-                <button data-name="addColumn">+</button>
-                <br>
+                <div class="hasHr" data-name="TitleDropZone">
+                    <span>主要資料表的名稱</span>
+                    <span data-name=Title></span>
+                </div>
+                <div class="hasHr" data-name="ColumnDropZone">
+                    <span>要查詢的欄位</span>
+                    <br><br>
+                </div>
+                <div>
+                    <span>條件</span>
+                    <button data-name="addColumn">+</button>
+                </div>
             </div>
         </div>
         <h3>③</h3>
