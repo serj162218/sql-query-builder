@@ -75,6 +75,13 @@
             for(i in this.element){
                 this.element[i].remove();
             }
+            for(i in this.columns){
+                let column = this.columns[i];
+                for(j in column.element){
+                    column.element[j].remove();
+                }
+            }
+            MainTable.tid = MainTable.tid == this.id ? -1 : MainTable.tid;
             delete TableList[this.id];
         });
     }
@@ -87,9 +94,12 @@
         table.element['input'].children("[data-name=deleteTable]").css("display","inherit");
         table.element['input'].removeClass("col-md-3").addClass("col-md-6");
         table.element['input'].find("[data-name=TableName]").before("<text>∷</text>");
+        setMainTableDragAndDropEvent();
+    }
+    function setMainTableDragAndDropEvent(){
         MainTableTitleDragAndDrop();
         MainTableColumnDragAndDrop();
-        
+        MainTableConditionDragAndDrop();
     }
     let InputTableElement = function(tid){
         return $($.parseHTML(`
@@ -203,22 +213,7 @@
     const MainTable = {
         tid: -1,
         uid: [],
-    };
-    let TitleMainElement = function(){
-        return $($.parseHTML(`
-        <span data-name=Title>
-            <h5 data-type=text></h5>
-            <button data-name="delete">X</button>
-        </span>
-        `));
-    };
-    let ColumnMainElement = function(){
-        return $($.parseHTML(`
-        <span data-name=Column>
-            <h5 data-type=text></h5>
-            <button data-name="delete">X</button>
-        </span>
-        `));
+        conditionUID:[],
     };
     function MainTableTitleDragAndDrop(){
         const dropzone = $("#MainTableDiv [data-name=TitleDropZone]");
@@ -230,19 +225,24 @@
                 let tid = drag.attr("tid");
                 let table = TableList[tid];
                 let origintid = MainTable['tid'];
+                console.log({tid,origintid});
                 let element = TitleMainElement();
                 element.children("[data-type=text]").text(drag.val());
                 table.setElement(element,"main");
                 if(origintid != tid && origintid != -1){
-                    for(i in TableList[origintid]['columns']){
-                        let col = TableList[origintid]['columns'][i];
+                    let OriginTable = TableList[origintid];
+                    for(i in OriginTable['columns']){
+                        OriginTable.element['main'].remove();
+                        let col = OriginTable['columns'][i];
                         if(typeof col.element['main'] != 'undefined')
                             col.element['main'].remove();
+                        if(typeof col.element['MainCondition'] != 'undefined')
+                            col.element['MainCondition'].remove();
                     }
                     MainTable['uid'] = [];
                 }
                 MainTable['tid']=tid;
-                $(event.target).children("[data-name=Title]").replaceWith(element);
+                $(event.target).children("[data-name=TitleSpan]").html(element);
             }
         });
         const draggable = $("#SelectTable [data-name=TitleDrag]");
@@ -252,12 +252,19 @@
             revertDuration :false
         });
     }
+    let TitleMainElement = function(){
+        return $($.parseHTML(`
+        <span data-name=Title>
+            <h5 data-type=text></h5>
+            <button data-name="delete">X</button>
+        </span>
+        `));
+    };
     function MainTableColumnDragAndDrop(){
         const dropzone = $("#MainTableDiv [data-name=ColumnDropZone]");
         dropzone.droppable({
             accept: '#SelectTable [data-name=ColumnDrag]',
             drop:function(event,ui){
-                console.log("trigger");
                 let drag = ui.draggable.children("input");
                 let tid = drag.attr("tid");
                 let uid = drag.attr("uid");
@@ -279,7 +286,52 @@
             revertDuration :false,
         });
     }
-
+    let ColumnMainElement = function(){
+        return $($.parseHTML(`
+        <span data-name=Column>
+            <h5 data-type=text></h5>
+            <button data-name="delete">X</button>
+        </span>
+        `));
+    };
+    let ConditionElement = function(){
+        return $($.parseHTML(`
+        <span data-name=Column>
+            <text data-type="text"></text>
+            = ? 
+            <button data-name="delete">X</button>
+            <br>
+        </span>
+        `));
+    }
+    function MainTableConditionDragAndDrop(){
+        const dropzone = $("#MainTableDiv [data-name=Condition]");
+        dropzone.droppable({
+            accept: '#SelectTable [data-name=ColumnDrag]',
+            drop:function(event,ui){
+                console.log("ES");
+                let drag = ui.draggable.children("input");
+                let tid = drag.attr("tid");
+                let uid = drag.attr("uid");
+                let element = ConditionElement();
+                let table = TableList[tid];
+                let column = table['columns'][uid];
+                if(MainTable['tid'] != tid) return;
+                if($.inArray(uid,MainTable['conditionUID']) != -1) return;
+                MainTable['conditionUID'].push(uid);
+                element.children("[data-type=text]").text(drag.val());
+                console.log(element.children("[data-type=text]"));
+                column.setElement(element,"MainCondition");
+                $(event.target).children("[data-name=ConditionText]").after(element);
+            }
+        });
+        const draggable = $("#SelectTable [data-name=ColumnDrag]");
+        draggable.draggable({
+            helper: 'clone',
+            revert :true,
+            revertDuration :false,
+        });
+    }
     /*
     let OperatorElement = function(){
         return $($.parseHTML(`
