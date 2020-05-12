@@ -26,3 +26,14 @@
 .hasHr{
     border-bottom:1px #333 solid;
 }
+.JoinTable{
+    border-radius: 5px;
+    border-color:rgba(223, 125, 125, 0.74);
+    border-style:solid;
+}
+.hideIfBeforeText{
+    opacity: 1;
+}
+text > .hideIfBeforeText{
+    opacity: 0;
+}

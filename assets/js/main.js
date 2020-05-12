@@ -10,7 +10,6 @@
             this.element = {};
             this.columns = {};
             this.name = "";
-            this.selected = false;
             this.columnNums = 0;
         }
         setElement(element,name){
@@ -71,18 +70,23 @@
             }
         });     
         table.RegisterDeleteListener(function(val){
-            if(val == false) return;
             for(i in this.element){
                 this.element[i].remove();
             }
             for(i in this.columns){
                 let column = this.columns[i];
-                for(j in column.element){
-                    column.element[j].remove();
-                }
+                column.delete();
             }
-            MainTable.tid = MainTable.tid == this.id ? -1 : MainTable.tid;
+
+            if(MainTable.tid == this.id){
+                MainTable.tid = -1
+            }
             delete TableList[this.id];
+            let index = JoinTableTidList.indexOf(this.id);
+            if(index != -1){
+                JoinTableList[index].element.remove();
+                delete JoinTableList[index];
+            }
         });
     }
     function renderOnSelectTable(event){
@@ -138,7 +142,6 @@
         constructor(){
             this.element = {};
             this.name = "";
-            this.selected = false;
         }
         setElement(element,name){
             this.element[name] = element;
@@ -194,10 +197,24 @@
             //TODO 當TableName改變時，改變此Table的elements裡面的全部element的TableName
         });
         column.RegisterDeleteListener(function(val){
-            if(val == false) return;
             //TODO 當TableName改變時，改變此Table的elements裡面的全部element的TableName
             for(i in this.element){
                 this.element[i].remove();
+            }
+            let uid = column.uid;
+            if(MainTable.tid == table.id)
+                if($.inArray(uid,MainTable['uid']) != -1)
+                    MainTable['uid'].splice(MainTable['uid'].indexOf(uid),1);
+            
+            if($.inArray(table.id,JoinTableTidList) != -1){
+                let index = JoinTableTidList.indexOf(table.id);
+                JoinTableTidList.splice(index,1);
+                let jointable = JoinTableList[index];
+                if($.inArray(uid,jointable['uid']) != -1)
+                    jointable['uid'].splice(jointable['uid'].indexOf(uid),1);
+                if(typeof jointable['ConditionUID'][uid] != 'undefined')
+                    delete jointable['ConditionUID'][uid];
+                
             }
             delete table.columns[column.uid];
         });
@@ -222,11 +239,11 @@
             drop:function(event,ui){
                 
                 let drag = ui.draggable.children("input");
-                let tid = drag.attr("tid");
+                let tid = Number(drag.attr("tid"));
                 let table = TableList[tid];
                 let origintid = MainTable['tid'];
-                console.log({tid,origintid});
                 let element = TitleMainElement();
+                if(JoinTableTidList.indexOf(tid) != -1) return;
                 element.children("[data-type=text]").text(drag.val());
                 table.setElement(element,"main");
                 if(origintid != tid && origintid != -1){
@@ -240,10 +257,12 @@
                             col.element['MainCondition'].remove();
                     }
                     MainTable['uid'] = [];
+                    MainTable['conditionUID'] = [];
                 }
                 MainTable['tid']=tid;
                 $(event.target).children("[data-name=TitleSpan]").html(element);
-            }
+            },
+            tolerance :'touch'
         });
         const draggable = $("#SelectTable [data-name=TitleDrag]");
         draggable.draggable({
@@ -266,8 +285,8 @@
             accept: '#SelectTable [data-name=ColumnDrag]',
             drop:function(event,ui){
                 let drag = ui.draggable.children("input");
-                let tid = drag.attr("tid");
-                let uid = drag.attr("uid");
+                let tid = Number(drag.attr("tid"));
+                let uid = Number(drag.attr("uid"));
                 let element = ColumnMainElement();
                 let table = TableList[tid];
                 let column = table['columns'][uid];
@@ -294,7 +313,7 @@
         </span>
         `));
     };
-    let ConditionElement = function(){
+    let ConditionMainElement = function(){
         return $($.parseHTML(`
         <span data-name=Column>
             <text data-type="text"></text>
@@ -309,18 +328,16 @@
         dropzone.droppable({
             accept: '#SelectTable [data-name=ColumnDrag]',
             drop:function(event,ui){
-                console.log("ES");
                 let drag = ui.draggable.children("input");
-                let tid = drag.attr("tid");
-                let uid = drag.attr("uid");
-                let element = ConditionElement();
+                let tid = Number(drag.attr("tid"));
+                let uid = Number(drag.attr("uid"));
+                let element = ConditionMainElement();
                 let table = TableList[tid];
                 let column = table['columns'][uid];
                 if(MainTable['tid'] != tid) return;
                 if($.inArray(uid,MainTable['conditionUID']) != -1) return;
                 MainTable['conditionUID'].push(uid);
                 element.children("[data-type=text]").text(drag.val());
-                console.log(element.children("[data-type=text]"));
                 column.setElement(element,"MainCondition");
                 $(event.target).children("[data-name=ConditionText]").after(element);
             }
@@ -331,6 +348,215 @@
             revert :true,
             revertDuration :false,
         });
+    }
+
+    class JoinTable{
+        static tid = 0;
+        id;
+        tid;
+        uid;
+        conditionUID;
+        joinMode;
+        element;
+        constructor(tid){
+            this.tid = tid;
+            this.uid = [];
+            this.conditionUID = {};
+            this.joinMode = '';
+        }
+    }
+    const JoinTableTidList = [];
+    const JoinTableList = [];
+
+    $().ready(function(){
+        $("#JoinTableDiv [data-name=addColumn]").click(createNewJoinTableModal);
+    });
+    function createNewJoinTableModal(){
+        let table = createNewJoinTable();
+        table.element = RenderJoinTable(table.id);
+        setJoinTableDragAndDropEvent(table);
+    }
+    function createNewJoinTable(){
+        let table =  new JoinTable(--JoinTable.tid);
+        JoinTableList.push(table);
+        JoinTableTidList.push(table.tid);
+        return table;
+    }
+    function RenderJoinTable(id){
+        let element = JoinTableElement(id);
+        $("#JoinTableDiv .Table").append(element);
+        return element;
+    }
+    JoinTableElement = function(id){
+        return $($.parseHTML(`
+        <div class="JoinTable" data-id=${id}>
+            <div class="hasHr" data-name="TitleDropZone">
+                <span>資料表名稱</span>
+                <button data-name="deleteTable">-</button>
+                <span data-name="TitleSpan"></span>
+            </div>
+            <div class="hasHr" data-name="ColumnDropZone">
+                <span>要查詢的欄位</span>
+                <br>
+                <br>
+            </div>
+            <div class="hasHr" data-name="Condition">
+                <span data-name="ConditionText">
+                    條件
+                    <br>
+                    <br>
+                </span>
+            </div>
+        </div>
+        `));
+    }
+    function setJoinTableDragAndDropEvent(table){
+        setJoinTableTitleDragAndDrop(table);
+        setJoinTableColumnDragAndDrop(table);
+        setJoinTableConditionDragAndDrop(table);
+        
+    }
+    function setJoinTableTitleDragAndDrop(jointable){
+        const dropzone = $("#JoinTableDiv [data-name=TitleDropZone]");
+        dropzone.droppable({
+            accept: '#SelectTable [data-name=TitleDrag]',
+            drop:function(event,ui){
+                let drag = ui.draggable.children("input");
+                let tid = Number(drag.attr("tid"));
+                let table = TableList[tid];
+                let element = TitleJoinElement();
+                if(MainTable['tid'] == tid) return;
+                element.children("[data-type=text]").text(drag.val());
+                table.setElement(element,"join");
+                JoinTableTidList[JoinTableTidList.indexOf(jointable['tid'])] = tid;
+                jointable['tid']=tid;
+                $(event.target).children("[data-name=TitleSpan]").html(element);
+                $(event.target).droppable('disable');
+            },
+            tolerance :'touch'
+        });
+        const draggable = $("#SelectTable [data-name=TitleDrag]");
+        draggable.draggable({
+            helper: 'clone',
+            revert :true,
+            revertDuration :false
+        });
+    }
+    let TitleJoinElement = function(){
+        return $($.parseHTML(`
+        <span data-name=Title>
+            <h5 data-type=text></h5>
+        </span>
+        `));
+    }
+    function setJoinTableColumnDragAndDrop(jointable){
+        const dropzone = $("#JoinTableDiv [data-name=ColumnDropZone]");
+        dropzone.droppable({
+            accept: '#SelectTable [data-name=ColumnDrag]',
+            drop:function(event,ui){
+                let drag = ui.draggable.children("input");
+                let tid = Number(drag.attr("tid"));
+                let uid = Number(drag.attr("uid"));
+                let element = ColumnJoinElement();
+                let table = TableList[tid];
+                let column = table['columns'][uid];
+                if(jointable['tid'] != tid) return;
+                if($.inArray(uid,jointable['uid']) != -1) return;
+                jointable['uid'].push(uid);
+                element.children("[data-type=text]").text(drag.val());
+                column.setElement(element,"join");
+                $(event.target).append(element);
+            }
+        });
+        const draggable = $("#SelectTable [data-name=ColumnDrag]");
+        draggable.draggable({
+            helper: 'clone',
+            revert :true,
+            revertDuration :false,
+        });
+    }
+    let ColumnJoinElement = function(){
+        return $($.parseHTML(`
+        <span data-name=Column>
+            <h5 data-type=text></h5>
+            <button data-name="delete">X</button>
+        </span>
+        `));
+    }
+    function setJoinTableConditionDragAndDrop(jointable){
+        const dropzone = $("#JoinTableDiv [data-name=Condition]");
+        dropzone.droppable({
+            accept: '#SelectTable [data-name=ColumnDrag]',
+            drop:function(event,ui){
+                let drag = ui.draggable.children("input");
+                let tid = Number(drag.attr("tid"));
+                let uid = Number(drag.attr("uid"));
+                let element = ConditionJoinElement();
+                let table = TableList[tid];
+                let column = table['columns'][uid];
+                console.log(jointable['conditionUID']);
+                if(jointable['tid'] != tid) return;
+                if(typeof jointable['conditionUID'][uid] != 'undefined') return;
+                jointable['conditionUID'][uid]=null;
+                element.children("[data-type=text]").text(drag.val());
+                column.setElement(element,"JoinCondition");
+                $(event.target).children("[data-name=ConditionText]").after(element);
+                setJoinTableConditionCompareDragAndDropEvent(jointable);
+            }
+        });
+        const draggable = $("#SelectTable [data-name=ColumnDrag]");
+        draggable.draggable({
+            helper: 'clone',
+            revert :true,
+            revertDuration :false,
+        });
+    }
+    let ConditionJoinElement = function(){
+        return $($.parseHTML(`
+        <span data-name=Column>
+            <text data-type="text"></text>
+            <span data-name="compareDropZone">= <t> <span class="hideIfBeforeText">?</span> </t></span>
+            <button data-name="delete">X</button>
+            <br>
+        </span>
+        `));
+    }
+    function setJoinTableConditionCompareDragAndDropEvent(jointable){
+        const dropzone = $("[data-name=Column] [data-name=compareDropZone]");
+        dropzone.droppable({
+            accept: '#SelectTable [data-name=ColumnDrag]',
+            drop:function(event,ui){
+                let drag = ui.draggable.children("input");
+                let tid = Number(drag.attr("tid"));
+                let uid = Number(drag.attr("uid"));
+                let elementForColumn = ConditionCompareElement();
+                let elementForTable = ConditionCompareElement();
+                let table = TableList[tid];
+                let column = table['columns'][uid];
+                let compareCondition = `${tid}-${uid}`;
+                if(jointable['tid'] == tid) return;
+                if(jointable['conditionUID'][uid] != null) return;
+                jointable['conditionUID'][uid] = compareCondition;
+                elementForColumn.children("[data-type=text]").text(drag.val());
+                elementForTable.children("[data-type=text]").text(table.name+".");
+                column.setElement(elementForColumn,"JoinCompareCondition");
+                table.setElement(elementForTable,"JoinCompareCondition");
+                $(event.target).children("t").prepend(elementForTable,elementForColumn);
+                $("[data-name=Column] [data-name=compareDropZone]").droppable('disable');
+            },
+            tolerance :'touch'
+        });
+        const draggable = $("#SelectTable [data-name=ColumnDrag]");
+        draggable.draggable({
+            helper: 'clone',
+            revert :true,
+            revertDuration :false,
+        });
+    }
+    let ConditionCompareElement = function(){
+        return $($.parseHTML(`
+            <span><text data-type='text'></text></span>
+        `));
     }
     /*
     let OperatorElement = function(){
@@ -347,10 +573,10 @@
     let JoinOption = function(id){
         return $($.parseHTML(`
             <select>
-                <option data-v="1">Inner Join</option>
-                <option data-v="2">Left Join</option>
-                <option data-v="3">Right Join</option>
-                <option data-v="4">Outer Join</option>
+                <option>Inner Join</option>
+                <option>Left Join</option>
+                <option>Right Join</option>
+                <option>Outer Join</option>
             </select>
         `));
     }
