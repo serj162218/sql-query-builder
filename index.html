@@ -70,23 +70,26 @@
         <div id="RightDiv">
             <ul class="nav nav-tabs" irole="tablist">
                 <li class="nav-item">
-                  <a class="nav-link active" id="SelectTable-tab" data-toggle="tab" href="#SelectTable" role="tab" aria-controls="SelectTable" aria-selected="true">資料表</a>
+                    <a class="nav-link active" id="SelectTable-tab" data-toggle="tab" href="#SelectTable" role="tab" aria-controls="SelectTable" aria-selected="true">資料表</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" id="QueryTable-tab" data-toggle="tab" href="#QueryTable" role="tab" aria-controls="QueryTable" aria-selected="false">Query</a>
+                    <a class="nav-link" id="QueryTable-tab" data-toggle="tab" href="#QueryTable" role="tab" aria-controls="QueryTable" aria-selected="false">Query</a>
                 </li>
-              </ul>
-              <div class="tab-content">
-                <div class="tab-pane fade show active container" role="tabpanel" aria-labelledby="SelectTable-tab" id="SelectTable">
-                    <div class="row">
+            </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active container" role="tabpanel" aria-labelledby="SelectTable-tab" id="SelectTable">
+                        <div class="row">
+                        </div>
+                    </div>
+                    <div class="tab-pane fade container" id="QueryTable" role="tabpanel" aria-labelledby="QueryTable-tab">
+                    <!-- Query -->
                     </div>
                 </div>
-                <div class="tab-pane fade container" id="QueryTable" role="tabpanel" aria-labelledby="QueryTable-tab">
-                    <!-- 產生結果 -->
-                </div>
-              </div>
+            </div>
         </div>
     </div>
     
 </body>
+<!-- Query.js -->
+<script src="assets/js/query/mysql.js"></script>
 </html>

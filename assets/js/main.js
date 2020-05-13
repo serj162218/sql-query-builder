@@ -83,7 +83,10 @@
             let index = JoinTableTidList.indexOf(this.id);
             if(index != -1){
                 let jointable = JoinTableList[index];
-                jointable.element.children("[data-name=TitleDropZone]").droppable("enable");
+                JoinTableList.splice(JoinTableList.indexOf(index),1);
+                JoinTableTidList.splice(JoinTableTidList.indexOf(index),1);
+                jointable.element.remove();
+                delete jointable;
             }
             delete TableList[this.id];
         });
@@ -201,9 +204,13 @@
                 this.element[i].remove();
             }
             let uid = column.uid;
-            if(MainTable.tid == table.id)
+            if(MainTable.tid == table.id){
                 if($.inArray(uid,MainTable['uid']) != -1)
                     MainTable['uid'].splice(MainTable['uid'].indexOf(uid),1);
+                if($.inArray(uid,MainTable['conditionUID']) != -1)
+                    MainTable['conditionUID'].splice(MainTable['conditionUID'].indexOf(uid),1);
+                    
+            }
             
             if($.inArray(table.id,JoinTableTidList) != -1){
                 let index = JoinTableTidList.indexOf(table.id);
@@ -435,7 +442,7 @@
         $("#JoinTableDiv .Table").append(element);
         return element;
     }
-    JoinTableElement = function(tid){
+    let JoinTableElement = function(tid){
         return $($.parseHTML(`
         <div class="JoinTable" data-id=${tid}>
             <div class="hasHr" data-name="TitleDropZone">
@@ -461,10 +468,10 @@
     let JoinOption = function(id){
         return `
             <select data-tid=${id} data-name=JoinMode>
-                <option>Inner Join</option>
-                <option>Left Join</option>
-                <option>Right Join</option>
-                <option>Outer Join</option>
+                <option>INNER Join</option>
+                <option>LEFT Join</option>
+                <option>RIGHT Join</option>
+                <option>OUTER Join</option>
             </select>`
     }
     function SetJoinTableElementEvents(element,jointable){
@@ -639,17 +646,18 @@
         let column = table['columns'][uid];
         column.element['JoinCondition'].remove();
         delete column.element['JoinCondition'];
-
-        for(uid in jointable.conditionUID){ //jointable的條件已被放入關聯的資料表資料 要清除關於此資料表的JoinCompareCondition
+            //jointable的條件已被放入關聯的資料表資料 要清除關於此資料表的JoinCompareCondition
+        if(typeof jointable.conditionUID[uid] != "undefined"){
             if(jointable.conditionUID[uid] == null){
                 delete jointable['conditionUID'][uid];
-                continue;
-            };
-            let [tabletid,tableuid] = jointable.conditionUID[uid].split('-');
-            let table = TableList[tabletid];
-            let column = table.columns[tableuid];
-            delete table.element[`JoinCompareCondition${tid}-${uid}`];
-            delete column.element[`JoinCompareCondition${tid}-${uid}`];
+            }else{
+                let [tabletid,tableuid] = jointable.conditionUID[uid].split('-');
+                let table = TableList[tabletid];
+                let column = table.columns[tableuid];
+                delete table.element[`JoinCompareCondition${tid}-${uid}`];
+                delete column.element[`JoinCompareCondition${tid}-${uid}`];
+                delete jointable['conditionUID'][uid];
+            }
         }
     }
     function setJoinTableConditionCompareDragAndDropEvent(jointable){
@@ -691,6 +699,80 @@
             <span><text data-type='text'></text></span>
         `));
     }
-    
-    
+
+    $().ready(function(){
+        RenderQueryTable();
+    });
+    function RenderQueryTable(){
+        let database = ['mysql'];
+        let element = '';
+        for(i in database){
+            element += QueryTableElement(database[i]);
+        }
+        $("#QueryTable").html(element);
+        SetQueryTableEvents(database);
+    }
+    let QueryTableElement = function(DataBaseName){
+        return `
+        <ul class="nav nav-tabs" irole="tablist">
+            <li class="nav-item">
+                <a class="nav-link" id="${DataBaseName}-tab" data-toggle="tab" href="#${DataBaseName}" role="tab" aria-controls="${DataBaseName}" aria-selected="true">${DataBaseName.toUpperCase()}</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="${DataBaseName}-tab" id="${DataBaseName}">
+                <ul class="nav nav-tabs" irole="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link" id="SELECT-tab" data-toggle="tab" href="#SELECT" role="tab" aria-controls="SELECT" aria-selected="true">SELECT</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="INSERT-tab" data-toggle="tab" href="#INSERT" role="tab" aria-controls="INSERT" aria-selected="true">INSERT</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="UPDATE-tab" data-toggle="tab" href="#UPDATE" role="tab" aria-controls="UPDATE" aria-selected="true">UPDATE</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="DELETE-tab" data-toggle="tab" href="#DELETE" role="tab" aria-controls="DELETE" aria-selected="true">DELETE</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="SELECT-tab" id="SELECT">SELECT!</div>
+                    <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="INSERT-tab" id="INSERT">INSERT!</div>
+                    <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="UPDATE-tab" id="UPDATE">UPDATE!</div>
+                    <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="DELETE-tab" id="DELETE">DELETE!</div>
+                </div>
+            </div>
+        </div>
+        `
+    }
+    function SetQueryTableEvents(database){
+        for(i in database){
+            let DataBaseName = database[i];
+            $(`#${DataBaseName} #SELECT-tab`).click({DataBaseName},QueryForSELECT);
+            $(`#${DataBaseName} #INSERT-tab`).click({DataBaseName},QueryForINSERT);
+            $(`#${DataBaseName} #UPDATE-tab`).click({DataBaseName},QueryForUPDATE);
+            $(`#${DataBaseName} #DELETE-tab`).click({DataBaseName},QueryForDELETE);
+        }
+    }
+    function QueryForSELECT(event){
+        let database = event.data.DataBaseName;
+        let Query = global.Query[database];
+        $(`#${database} #SELECT`).html(Query.SELECT());
+    }
+    function QueryForUPDATE(event){
+        let database = event.data.DataBaseName;
+        let Query = global.Query[database];
+        $(`#${database} #UPDATE`).html(Query.UPDATE());
+    }
+    function QueryForINSERT(event){
+        let database = event.data.DataBaseName;
+        let Query = global.Query[database];
+        $(`#${database} #INSERT`).html(Query.INSERT());
+    }
+    function QueryForDELETE(event){
+        let database = event.data.DataBaseName;
+        let Query = global.Query[database];
+        $(`#${database} #DELETE`).html(Query.DELETE());
+    }
+    global.Query = [MainTable,TableList,JoinTableList];
 })(this);
