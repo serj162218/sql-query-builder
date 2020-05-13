@@ -1,11 +1,8 @@
 ;
 (function (global){
-    $().ready(function(){
-        createInputTable();
-    });
-    let dataid = 1;
     let TableList = {};
     class Table{
+        static id;
         constructor(){
             this.element = {};
             this.columns = {};
@@ -43,20 +40,23 @@
             this.deleteListener = listener;
         }
     }
+    Table.id = 1;
+    $().ready(function(){
+        createInputTable();
+    });
     function createInputTable(){
         // 新建資料表
         let table = createTable();
         $("#InputTableDiv").append(table.element['input']);
-        
     }
     function createTable(){
         let table = new Table();
-        table.id = dataid;
-        TableList[dataid] = table;
+        table.id = Table.id;
+        TableList[Table.id] = table;
         let element = TableInputElement(table.id);
         table.setElement(element,"input");
         InputTableSetEvents(table);
-        dataid++;
+        Table.id++;
         return table;
     }
     function InputTableSetEvents(table){
@@ -90,7 +90,7 @@
     }
     function renderOnSelectTable(event){
         let table = event.data.table;
-        if(dataid%2==0) $("#SelectTable").append(`<div class="row"></div>`);
+        if(Table.id%2==0) $("#SelectTable").append(`<div class="row"></div>`);
         createInputTable();
         table.element['input'].appendTo('#SelectTable .row:last-child');
         table.element['input'].children("[data-name=finish]").remove();
@@ -341,10 +341,8 @@
         let table = event.data.table;
         let uid = event.data.uid;
         let column = table['columns'][uid];
-        {
-            let index =  MainTable['uid'].indexOf(uid)
-            if(index != -1) MainTable['uid'].splice(index,1);
-        }
+        let index =  MainTable['uid'].indexOf(uid)
+        if(index != -1) MainTable['uid'].splice(index,1);
         column.element['main'].remove();
         delete column.element['main'];
     }
@@ -405,13 +403,13 @@
         tid;
         uid;
         conditionUID;
-        joinMode;
+        JoinMode;
         element;
         constructor(tid){
             this.tid = tid;
             this.uid = [];
             this.conditionUID = {};
-            this.joinMode = '';
+            this.JoinMode = 'Inner Join';
         }
     }
     const JoinTableTidList = [];
@@ -424,6 +422,7 @@
         let table = createNewJoinTable();
         table.element = RenderJoinTable(table.tid);
         setJoinTableDragAndDropEvent(table);
+        SetJoinTableElementEvents(table.element,table);
     }
     function createNewJoinTable(){
         let table =  new JoinTable(--JoinTable.tid);
@@ -440,7 +439,7 @@
         return $($.parseHTML(`
         <div class="JoinTable" data-id=${tid}>
             <div class="hasHr" data-name="TitleDropZone">
-                <span>資料表名稱</span>
+                <span>資料表名稱${JoinOption(tid)}</span>
                 <button data-name="deleteTable">-</button>
                 <span data-name="TitleSpan"></span>
             </div>
@@ -458,6 +457,51 @@
             </div>
         </div>
         `));
+    }
+    let JoinOption = function(id){
+        return `
+            <select data-tid=${id} data-name=JoinMode>
+                <option>Inner Join</option>
+                <option>Left Join</option>
+                <option>Right Join</option>
+                <option>Outer Join</option>
+            </select>`
+    }
+    function SetJoinTableElementEvents(element,jointable){
+        $(element).find("[data-name=deleteTable]").on('click',{element,jointable},DeleteJoinTableElement);
+        $(element).find("[data-name=JoinMode]").on('change',{element,jointable},ChangeJoinTableJoinMode);
+    }
+    function DeleteJoinTableElement(event){
+        let jointable = event.data.jointable;
+        let element = event.data.element;
+        let tid = jointable.tid;
+        if(tid > -1 ){ //jointable已被放入其他資料表的資料 要清除關於此資料表的join資料
+            let table = TableList[tid];
+            if(typeof table.element['join'] != 'undefined') delete table.element['join'];
+            for(i in table.columns){
+                let col = table.columns[i];
+                if(typeof col.element['join'] != 'undefined') delete col.element['join'];
+                if(typeof col.element['JoinCondition'] != 'undefined') delete col.element['JoinCondition'];
+            }
+        }
+        for(uid in jointable.conditionUID){ //jointable的條件已被放入關聯的資料表資料 要清除關於此資料表的JoinCompareCondition
+            if(jointable.conditionUID[uid] == null) continue;
+            let [tabletid,tableuid] = jointable.conditionUID[uid].split('-');
+            let table = TableList[tabletid];
+            let column = table.columns[tableuid];
+            delete table.element[`JoinCompareCondition${tid}-${uid}`];
+            delete column.element[`JoinCompareCondition${tid}-${uid}`];
+        }
+        let index = JoinTableTidList.indexOf(tid);
+        JoinTableTidList.splice(index,1);
+        JoinTableList.splice(index,1);
+        element.remove();
+        delete jointable;
+    }
+    function ChangeJoinTableJoinMode(event){
+        let mode = $(this).val();
+        let table = event.data.jointable;
+        table.JoinMode = mode;
     }
     function setJoinTableDragAndDropEvent(table){
         setJoinTableTitleDragAndDrop(table);
@@ -515,6 +559,7 @@
                 element.children("[data-type=text]").text(drag.val());
                 column.setElement(element,"join");
                 $(event.target).append(element);
+                SetColumnJoinElementEvents(element,jointable,table,uid);
             }
         });
         const draggable = $("#SelectTable [data-name=ColumnDrag]");
@@ -531,6 +576,19 @@
             <button data-name="delete">X</button>
         </span>
         `));
+    }
+    function SetColumnJoinElementEvents(element,jointable,table,uid){
+        $(element).children("[data-name=delete]").on('click',{jointable,table,uid},DeleteColumnJoinColumnElement);
+    }
+    function DeleteColumnJoinColumnElement(event){
+        let jointable = event.data.jointable;
+        let table = event.data.table;
+        let uid = event.data.uid;
+        let column = table['columns'][uid];
+        let index =  jointable['uid'].indexOf(uid)
+        if(index != -1) jointable['uid'].splice(index,1);
+        column.element['join'].remove();
+        delete column.element['join'];
     }
     function setJoinTableConditionDragAndDrop(jointable){
         const dropzone = jointable.element.children("[data-name=Condition]");
@@ -549,6 +607,7 @@
                 element.children("[data-type=text]").text(drag.val());
                 column.setElement(element,"JoinCondition");
                 $(event.target).children("[data-name=ConditionText]").after(element);
+                SetConditionJoinElementEvents(element,jointable,table,uid);
                 setJoinTableConditionCompareDragAndDropEvent(jointable);
             }
         });
@@ -568,6 +627,30 @@
             <br>
         </span>
         `));
+    }
+    function SetConditionJoinElementEvents(element,jointable,table,uid){
+        $(element).children("[data-name=delete]").on('click',{jointable,table,uid},DeleteJoinTableConditionElement);
+    }
+    function DeleteJoinTableConditionElement(event){
+        let jointable = event.data.jointable;
+        let table = event.data.table;
+        let uid = event.data.uid;
+        let tid = table.id;
+        let column = table['columns'][uid];
+        column.element['JoinCondition'].remove();
+        delete column.element['JoinCondition'];
+
+        for(uid in jointable.conditionUID){ //jointable的條件已被放入關聯的資料表資料 要清除關於此資料表的JoinCompareCondition
+            if(jointable.conditionUID[uid] == null){
+                delete jointable['conditionUID'][uid];
+                continue;
+            };
+            let [tabletid,tableuid] = jointable.conditionUID[uid].split('-');
+            let table = TableList[tabletid];
+            let column = table.columns[tableuid];
+            delete table.element[`JoinCompareCondition${tid}-${uid}`];
+            delete column.element[`JoinCompareCondition${tid}-${uid}`];
+        }
     }
     function setJoinTableConditionCompareDragAndDropEvent(jointable){
         const dropzone = jointable.element.find("[data-name=compareDropZone]");
@@ -608,27 +691,6 @@
             <span><text data-type='text'></text></span>
         `));
     }
-    /*
-    let OperatorElement = function(){
-        return $($.parseHTML(`
-            <option v="="> = </option>
-            <option v="!="> != </option>
-            <option v=">="> >= </option>
-            <option v=">"> > </option>
-            <option v="<="> <= </option>
-            <option v="<"> < </option>
-            <option v="?"> 自訂 </option>
-        `));
-    };
-    let JoinOption = function(id){
-        return $($.parseHTML(`
-            <select>
-                <option>Inner Join</option>
-                <option>Left Join</option>
-                <option>Right Join</option>
-                <option>Outer Join</option>
-            </select>
-        `));
-    }
-    */
+    
+    
 })(this);
