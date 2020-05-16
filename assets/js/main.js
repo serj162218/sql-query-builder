@@ -200,9 +200,24 @@
         });
         column.RegisterDeleteListener(function(val){
             //TODO 當TableName改變時，改變此Table的elements裡面的全部element的TableName
+            let JoinCompareCondition = [];
             for(i in this.element){
+                if(i.includes("JoinCompareCondition")) JoinCompareCondition.push(i.replace("JoinCompareCondition",""));
                 this.element[i].remove();
             }
+            
+            JoinCompareCondition.forEach(function(e){
+                let [tableX,columnX] = e.split('-');
+                let index = JoinTableTidList.indexOf(Number(tableX));
+                let jointable = JoinTableList[index];
+                jointable['conditionUID'][columnX] = null;
+                jointable['element'].find(".ui-droppable-disabled[data-name=compareDropZone]").droppable('enable');
+
+                table.element[`JoinCompareCondition${e}`].remove();
+                delete table.element[`JoinCompareCondition${e}`];
+
+            });
+
             let uid = column.uid;
             if(MainTable.tid == table.id){
                 if($.inArray(uid,MainTable['uid']) != -1)
@@ -526,6 +541,7 @@
                 let table = TableList[tid];
                 let element = TitleJoinElement();
                 if(MainTable['tid'] == tid) return;
+                if(JoinTableTidList.indexOf(tid) != -1) return;
                 element.children("[data-type=text]").text(drag.val());
                 table.setElement(element,"join");
                 JoinTableTidList[JoinTableTidList.indexOf(jointable['tid'])] = tid;
@@ -676,7 +692,7 @@
                 let column = table['columns'][draguid];
                 let compareCondition = `${dragtid}-${draguid}`;
                 if(tid == dragtid) return;
-                if(jointable['conditionUID'][uid] != null) return;
+                if(MainTable.tid != dragtid && JoinTableTidList.indexOf(dragtid) == -1) return;
                 jointable['conditionUID'][uid] = compareCondition;
                 elementForColumn.children("[data-type=text]").text(drag.val());
                 elementForTable.children("[data-type=text]").text(table.name);

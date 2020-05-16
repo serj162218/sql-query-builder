@@ -1,7 +1,6 @@
 ;
 (function(global,Query){
     let [MainTable,TableList,JoinTableList] = [Query[0],Query[1],Query[2]];
-    console.log(MainTable,TableList,JoinTableList);
     Query['mysql'] = {
         SELECT : ()=>{
             let Query = ['SELECT'];
