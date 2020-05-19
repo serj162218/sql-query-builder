@@ -6,7 +6,7 @@
             let Query = ['SELECT'];
             let Selected = [];
             let tid = MainTable.tid;
-            if(tid == -1) return "Error 沒有選擇主資料表";
+            if(tid == -1) return "請選擇主要的資料表";
             let uid = MainTable.uid;
             let conditionUID = MainTable.conditionUID;
             let table = TableList[tid];
@@ -80,7 +80,7 @@
             let Query = ['INSERT INTO'];
             let Selected = [];
             let tid = MainTable.tid;
-            if(tid == -1) return "Error 沒有選擇主資料表";
+            if(tid == -1) return "請選擇主要的資料表";
             let uid = MainTable.uid;
             let table = TableList[tid];
             
@@ -126,7 +126,7 @@
             let Query = ['DELETE'];
             let Selected = [];
             let tid = MainTable.tid;
-            if(tid == -1) return "Error 沒有選擇主資料表";
+            if(tid == -1) return "請選擇主要的資料表";
             let uid = MainTable.uid;
             let conditionUID = MainTable.conditionUID;
             let table = TableList[tid];
@@ -182,6 +182,7 @@
                     }
                 }else{
                     Query.push("1=1");
+                    alert("ON的條件式記得要加哦！這樣才會只更新特定某(幾)筆資料，不然全部的資料都會更改。");
                 }
             }
             if(conditionUID.length>0){
@@ -194,6 +195,8 @@
                     else
                         Query.push(`${table.name}.${column.name} = ? AND`);
                 }
+            }else{
+                alert("WHERE 條件式記得要加哦！這樣才會只更新特定某(幾)筆資料，不然全部的資料都會更改。");
             }
             return Query.join(" ");
         },
@@ -201,7 +204,7 @@
             let Query = ['UPDATE'];
             let Selected = [];
             let tid = MainTable.tid;
-            if(tid == -1) return "Error 沒有選擇主資料表";
+            if(tid == -1) return "請選擇主要的資料表";
             let uid = MainTable.uid;
             let conditionUID = MainTable.conditionUID;
             let table = TableList[tid];

@@ -720,75 +720,94 @@
         RenderQueryTable();
     });
     function RenderQueryTable(){
-        let database = ['mysql'];
-        let element = '';
-        for(i in database){
-            element += QueryTableElement(database[i]);
+        let database = [];
+        database.push({
+            Name:'mysql',
+            isUsable:true,
+        },{
+            Name:'Codeigniter',
+            isUsable:false,
+        },{
+            Name:'Laravel',
+            isUsable:false,
         }
+        )
+        let element = '<ul class="nav nav-tabs" irole="tablist">';
+        database.forEach(function(e){
+            element += QueryNavElement(e.Name,e.isUsable);
+        });
+        element += '</ul>';
+        element += '<div class="tab-content">';
+        database.forEach(function(e){
+            element += QueryContentElement(e.Name,e.isUsable);
+        });
+        element += '</div>';
+
         $("#QueryTable").html(element);
         SetQueryTableEvents(database);
     }
-    let QueryTableElement = function(DataBaseName){
+    let QueryNavElement = function(Name,isUsable){
         return `
-        <ul class="nav nav-tabs" irole="tablist">
+        
             <li class="nav-item">
-                <a class="nav-link" id="${DataBaseName}-tab" data-toggle="tab" href="#${DataBaseName}" role="tab" aria-controls="${DataBaseName}" aria-selected="true">${DataBaseName.toUpperCase()}</a>
+                <a class="nav-link ${isUsable ?"":"disabled"}" id="${Name}-tab" data-toggle="tab" href="#${Name}" role="tab" aria-controls="${Name}" aria-selected="true">${Name.toUpperCase()}</a>
             </li>
-        </ul>
-        <div class="tab-content">
-            <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="${DataBaseName}-tab" id="${DataBaseName}">
+        `;
+    }
+    let QueryContentElement = function(Name,isUsable){
+        return isUsable?`
+            <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="${Name}-tab" id="${Name}">
                 <ul class="nav nav-tabs" irole="tablist">
                     <li class="nav-item">
-                        <a class="nav-link" id="SELECT-tab" data-toggle="tab" href="#SELECT" role="tab" aria-controls="SELECT" aria-selected="true">SELECT</a>
+                        <a class="nav-link" id="${Name}SELECT-tab" data-toggle="tab" href="#${Name}SELECT" role="tab" aria-controls="SELECT" aria-selected="true">SELECT</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="INSERT-tab" data-toggle="tab" href="#INSERT" role="tab" aria-controls="INSERT" aria-selected="true">INSERT</a>
+                        <a class="nav-link" id="${Name}INSERT-tab" data-toggle="tab" href="#${Name}INSERT" role="tab" aria-controls="INSERT" aria-selected="true">INSERT</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="UPDATE-tab" data-toggle="tab" href="#UPDATE" role="tab" aria-controls="UPDATE" aria-selected="true">UPDATE</a>
+                        <a class="nav-link" id="${Name}UPDATE-tab" data-toggle="tab" href="#${Name}UPDATE" role="tab" aria-controls="UPDATE" aria-selected="true">UPDATE</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="DELETE-tab" data-toggle="tab" href="#DELETE" role="tab" aria-controls="DELETE" aria-selected="true">DELETE</a>
+                        <a class="nav-link" id="${Name}DELETE-tab" data-toggle="tab" href="#${Name}DELETE" role="tab" aria-controls="DELETE" aria-selected="true">DELETE</a>
                     </li>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="SELECT-tab" id="SELECT">SELECT!</div>
-                    <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="INSERT-tab" id="INSERT">INSERT!</div>
-                    <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="UPDATE-tab" id="UPDATE">UPDATE!</div>
-                    <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="DELETE-tab" id="DELETE">DELETE!</div>
+                    <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="${Name}SELECT-tab" id="${Name}SELECT">SELECT!</div>
+                    <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="${Name}INSERT-tab" id="${Name}INSERT">INSERT!</div>
+                    <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="${Name}UPDATE-tab" id="${Name}UPDATE">UPDATE!</div>
+                    <div class="tab-pane fade show container" role="tabpanel" aria-labelledby="${Name}DELETE-tab" id="${Name}DELETE">DELETE!</div>
                 </div>
             </div>
-        </div>
-        `
+            `:"";
     }
     function SetQueryTableEvents(database){
-        for(i in database){
-            let DataBaseName = database[i];
-            $(`#${DataBaseName} #SELECT-tab`).click({DataBaseName},QueryForSELECT);
-            $(`#${DataBaseName} #INSERT-tab`).click({DataBaseName},QueryForINSERT);
-            $(`#${DataBaseName} #UPDATE-tab`).click({DataBaseName},QueryForUPDATE);
-            $(`#${DataBaseName} #DELETE-tab`).click({DataBaseName},QueryForDELETE);
-        }
+        database.forEach(function(e){
+            let DataBaseName = e.Name;
+            $(`#${DataBaseName} #${DataBaseName}SELECT-tab`).click({DataBaseName},QueryForSELECT);
+            $(`#${DataBaseName} #${DataBaseName}INSERT-tab`).click({DataBaseName},QueryForINSERT);
+            $(`#${DataBaseName} #${DataBaseName}UPDATE-tab`).click({DataBaseName},QueryForUPDATE);
+            $(`#${DataBaseName} #${DataBaseName}DELETE-tab`).click({DataBaseName},QueryForDELETE);
+        });
     }
     function QueryForSELECT(event){
         let database = event.data.DataBaseName;
         let Query = global.Query[database];
-        $(`#${database} #SELECT`).html(Query.SELECT());
+        $(`#${database} #${database}SELECT`).html(Query.SELECT());
     }
     function QueryForUPDATE(event){
         let database = event.data.DataBaseName;
         let Query = global.Query[database];
-        $(`#${database} #UPDATE`).html(Query.UPDATE());
+        $(`#${database} #${database}UPDATE`).html(Query.UPDATE());
     }
     function QueryForINSERT(event){
         let database = event.data.DataBaseName;
         let Query = global.Query[database];
-        $(`#${database} #INSERT`).html(Query.INSERT());
+        $(`#${database} #${database}INSERT`).html(Query.INSERT());
     }
     function QueryForDELETE(event){
         let database = event.data.DataBaseName;
         let Query = global.Query[database];
-        $(`#${database} #DELETE`).html(Query.DELETE());
+        $(`#${database} #${database}DELETE`).html(Query.DELETE());
     }
     global.Query = [MainTable,TableList,JoinTableList];
 })(this);
