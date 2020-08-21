@@ -810,4 +810,25 @@
         $(`#${database} #${database}DELETE`).html(Query.DELETE());
     }
     global.Query = [MainTable,TableList,JoinTableList];
+
+    $().ready(function(){
+        $("#upload").change(uploadSQLTable);
+    });
+    function uploadSQLTable(){
+        let file = $("#upload")[0].files[0];
+        let reader = new FileReader;
+        reader.readAsText(file,'Unicode');
+        reader.onload = function(e){
+            CreateSQLTableFromQuery(e.target.result);
+        }
+    }
+    function CreateSQLTableFromQuery(query){
+        let regex = /CREATE TABLE(?= `)(.+\n)+/;
+        let result = [];
+        while(query.match(regex) != null){
+            result.push(query.match(regex)[0]);
+            query = query.replace(regex,"");
+        }
+        console.log(result);
+    }
 })(this);
