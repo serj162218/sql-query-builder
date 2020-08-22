@@ -823,12 +823,38 @@
         }
     }
     function CreateSQLTableFromQuery(query){
-        let regex = /CREATE TABLE(?= `)(.+\n)+/;
-        let result = [];
-        while(query.match(regex) != null){
-            result.push(query.match(regex)[0]);
-            query = query.replace(regex,"");
-        }
+        let result = pushToken(query,/CREATE TABLE(?= `)(.+\n)+/);
         console.log(result);
+        let tablesInfo = [];
+        result.forEach(function(e){
+            let token = pushToken(e,/`.+?`/);
+            //去除`
+            token.forEach(function(e,index){
+                let regex = "\`";
+                while(token[index].match(regex) != null){
+                    token[index] = token[index].replace(regex,"");
+                }
+            });
+            tablesInfo.push(token);
+        });
+        console.log(tablesInfo);
+        tablesInfo.forEach(function(table){
+            let inputTable = $("#InputTableDiv");
+            inputTable.find("[data-name=TableName]").val(table[0]); //第一個是Table名
+            table.shift(); //移除後進迴圈
+            table.forEach(function(col,index){
+                inputTable.find("[data-name=addColumn]").trigger("click");
+                inputTable.find(`[data-name=ColumnName][uid=${index}]`).val(col);
+            });
+            inputTable.find("[data-name=finish]").trigger("click");
+        });
+    }
+    function pushToken(e,regex){
+        let token = [];
+        while(e.match(regex) != null){
+            token.push(e.match(regex)[0]);
+            e = e.replace(regex,"");
+        }
+        return token;
     }
 })(this);
