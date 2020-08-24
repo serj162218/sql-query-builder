@@ -810,7 +810,7 @@
         $(`#${database} #${database}DELETE`).html(Query.DELETE());
     }
     global.Query = [MainTable,TableList,JoinTableList];
-
+    console.log(global.Query);
     $().ready(function(){
         $("#upload").change(uploadSQLTable);
     });
@@ -824,7 +824,6 @@
     }
     function CreateSQLTableFromQuery(query){
         let result = pushToken(query,/CREATE TABLE(?= `)(.+\n)+/);
-        console.log(result);
         let tablesInfo = [];
         result.forEach(function(e){
             let token = pushToken(e,/`.+?`/);
@@ -837,14 +836,15 @@
             });
             tablesInfo.push(token);
         });
-        console.log(tablesInfo);
         tablesInfo.forEach(function(table){
             let inputTable = $("#InputTableDiv");
             inputTable.find("[data-name=TableName]").val(table[0]); //第一個是Table名
+            inputTable.find("[data-name=TableName]").change(); //讓val寫入nameInterval
             table.shift(); //移除後進迴圈
             table.forEach(function(col,index){
                 inputTable.find("[data-name=addColumn]").trigger("click");
                 inputTable.find(`[data-name=ColumnName][uid=${index}]`).val(col);
+                inputTable.find(`[data-name=ColumnName][uid=${index}]`).change();
             });
             inputTable.find("[data-name=finish]").trigger("click");
         });
