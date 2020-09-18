@@ -493,10 +493,10 @@
     let JoinOption = function(id){
         return `
             <select data-tid=${id} data-name=JoinMode>
-                <option>INNER Join</option>
-                <option>LEFT Join</option>
-                <option>RIGHT Join</option>
-                <option>OUTER Join</option>
+                <option data-mode="Inner Join">交集</option>
+                <option data-mode="Left Join">差集-以主資料表為主</option>
+                <option data-mode="Right Join">差集-以此資料表為主</option>
+                <option data-mode="Outer Join">聯集</option>
             </select>`
     }
     function SetJoinTableElementEvents(element,jointable){
@@ -531,7 +531,7 @@
         delete jointable;
     }
     function ChangeJoinTableJoinMode(event){
-        let mode = $(this).val();
+        let mode = $(this).children("option:selected").attr("data-mode");
         let table = event.data.jointable;
         table.JoinMode = mode;
     }
