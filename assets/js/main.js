@@ -54,7 +54,9 @@
         table.id = Table.id;
         TableList[Table.id] = table;
         let element = TableInputElement(table.id);
+        let tabletitle = TableTitleElement(table.id);
         table.setElement(element,"input");
+        table.setElement(tabletitle,"title");
         InputTableSetEvents(table);
         Table.id++;
         return table;
@@ -93,13 +95,13 @@
     }
     function renderOnSelectTable(event){
         let table = event.data.table;
-        if(Table.id%2==0) $("#SelectTable").append(`<div class="row"></div>`);
-        createInputTable();
-        table.element['input'].appendTo('#SelectTable .row:last-child');
+        createInputTable(); 
+        table.element['input'].appendTo('#SelectTable .tab-content');
         table.element['input'].children("[data-name=finish]").remove();
         table.element['input'].children("[data-name=deleteTable]").css("display","inherit");
         table.element['input'].removeClass("col-md-3").addClass("col-md-6");
         table.element['input'].find("[data-name=TableName]").before("<text>∷</text>");
+        $("#SelectTable .nav-tabs").append(table.element['title']);
         setMainTableDragAndDropEvent();
     }
     function setMainTableDragAndDropEvent(){
@@ -109,7 +111,8 @@
     }
     let TableInputElement = function(tid){
         return $($.parseHTML(`
-        <div class="col-md-3 Table">
+        
+        <div class="tab-pane fade show col-md-3 Table" id="table-${tid}" role="tabpanel" aria-labelledby="table-${tid}-tab">
             <span data-name="TitleDrag">
                 <input type="text" data-name="TableName" tid="${tid}">
             </span>
@@ -118,6 +121,13 @@
             <button data-name="addColumn">+</button>
             <button data-name="deleteTable" style="display:none">-</button>
         </div>`));
+    }
+    let TableTitleElement = function(tid){
+        return $($.parseHTML(`
+        <li class="nav-item">
+            <a class="nav-link" id="${tid}-tab" data-toggle="tab" href="#table-${tid}" data-type=text role="tab" aria-controls="table-${tid}" aria-selected="false"></a>                    
+        </li>
+        `));
     }
     function deleteTable(event){
         let table = event.data.table;
