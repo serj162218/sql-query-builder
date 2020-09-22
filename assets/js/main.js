@@ -100,7 +100,7 @@
         table.element['input'].children("[data-name=finish]").remove();
         table.element['input'].children("[data-name=deleteTable]").css("display","inherit");
         table.element['input'].removeClass("col-md-3").addClass("col-md-6");
-        table.element['input'].find("[data-name=TableName]").before("<text>∷</text>");
+        table.element['input'].find("[data-name=TableName]").before("<text class='HideButton'>⬅</text>");
         $("#SelectTable .nav-tabs").append(table.element['title']);
         setMainTableDragAndDropEvent();
     }
@@ -148,7 +148,7 @@
         table.element['input'].append(column.element['input']);
         InputColumnSetEvents(table,column);
         MainTableColumnDragAndDrop();
-        column.element['input'].find("[data-name=ColumnName]").before("<text>∷</text>");
+        column.element['input'].find("[data-name=ColumnName]").before("<text class='HideButton'>⬅</text>");
     }
     class Column{
         constructor(){
@@ -261,6 +261,66 @@
         uid: [],
         conditionUID:[],
     };
+    const SelectedElement = {
+        type : null,
+        element : $(), //null
+        Table : null,
+    };
+    $().ready(function(){
+        setTitleSelectedEvent();
+        setColumnSelectedEvent();
+        setConditionSelectedEvent();
+        setCompareSelectedEvent();
+    });
+    function setTitleSelectedEvent(){
+        $("body").on("click","[data-name=TitleDropZone]",function(){
+            let element = $(this);
+            ResetSelectedElementClass(element);
+            SelectedElement.type = "title";
+            SelectedElement.element = element;
+            SelectedElement.Table = element.parent();
+            $("[data-name=TableName]").prev("text").removeClass("HideButton");
+            $("[data-name=ColumnName]").prev("text").addClass("HideButton");
+        });
+    }
+    function setColumnSelectedEvent(){
+        $("body").on("click","[data-name=ColumnDropZone]",function(){
+            let element = $(this);
+            ResetSelectedElementClass(element);
+            SelectedElement.type = "column";
+            SelectedElement.element = element;
+            SelectedElement.Table = element.parent();
+            $("[data-name=ColumnName]").prev("text").removeClass("HideButton");
+            $("[data-name=TableName]").prev("text").addClass("HideButton");
+        });
+    }
+    function setConditionSelectedEvent(){
+        $("body").on("click","[data-name=Condition]",function(){
+            let element = $(this);
+            ResetSelectedElementClass(element);
+            SelectedElement.type = "condition";
+            SelectedElement.element = element;
+            SelectedElement.Table = element.parent();
+            $("[data-name=ColumnName]").prev("text").removeClass("HideButton");
+            $("[data-name=TableName]").prev("text").addClass("HideButton");
+        });
+    }
+    function setCompareSelectedEvent(){
+        $("body").on("click","[data-name=compareDropZone]",function(event){
+            let element = $(this);
+            ResetSelectedElementClass(element);
+            SelectedElement.type = "compare";
+            SelectedElement.element = element;
+            SelectedElement.Table = element.closest(".JoinTable");
+            $("[data-name=ColumnName]").prev("text").removeClass("HideButton");
+            $("[data-name=TableName]").prev("text").addClass("HideButton");
+            event.stopPropagation(); //Stop triggering ConditionSelctedEvent
+        });
+    }
+    function ResetSelectedElementClass(element){
+        SelectedElement.element.removeClass("isSelected");
+        element.addClass("isSelected");
+    }
     function MainTableTitleDragAndDrop(){
         const dropzone = $("#MainTableDiv [data-name=TitleDropZone]");
         dropzone.droppable({
@@ -655,7 +715,7 @@
         return $($.parseHTML(`
         <span data-name=Column>
             <text data-type="text"></text>
-            <span data-name="compareDropZone" tid=${tid} uid=${uid}>= <t> <span class="hideIfBeforeText">?</span> </t></span>
+            <span data-name="compareDropZone" tid=${tid} uid=${uid}>= <t> <span class="isBeforeText">?</span> </t></span>
             <button data-name="delete">X</button>
             <br>
         </span>

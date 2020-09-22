@@ -31,9 +31,17 @@
     border-color:rgba(223, 125, 125, 0.74);
     border-style:solid;
 }
-.hideIfBeforeText{
+.isBeforeText{
     opacity: 1;
 }
-text > .hideIfBeforeText{
+text > .isBeforeText{
     opacity: 0;
+}
+.isSelected{
+    border-radius: 5px;
+    border-color:red;
+    border-style:solid;
+}
+.HideButton{
+    display:none;
 }
