@@ -20,23 +20,23 @@
 <body>
     <div class="container">
         <!-- 最外層 -->
-        <div class="col-md-12">
-            <input type="file" id="upload">
-        </div>
         <div class="container col-md-12">
             <!-- 使用說明 -->
             使用說明：
             <ol>
-                <li>點選 ☑ 符號新建一個資料表</li>
-                <li>使用拖移資料表的標題至 ② 主要的資料表</li>
-                <li>使用拖移資料欄位增加要查詢的欄位與條件，若沒有條件可略過</li>
+                <li>點選 ☑ 符號新建一個資料表 或 點擊【瀏覽】匯入sql檔</li>
+                <li>點擊 ② 的標題並點選 ⬅ 選擇主要的資料表</li>
+                <li>使用點擊的方式增加要查詢的欄位與條件，若沒有條件可略過</li>
                 <li>點選 ③ 其他資料表 的 + 創建要查詢的資料表</li>
-                <li>③ 裡面的條件 = ? 的部分， [ ? ] 可用拖移資料欄位的方式取代</li>
+                <li>③ 裡面的條件 = ? 的部分， [ ? ] 可用點擊資料欄位的方式取代</li>
                 <li>點擊 Query 選擇語法的類型</li>
                 <li>產生出來的便是對應的語法</li>
             </ol>
         </div>
         <h3>①</h3>
+        <div class="col-md-12">
+            匯入SQL檔<input type="file" id="upload">
+        </div>
         <div class="container col-md-12" id="InputTableDiv">
         </div>
         <h3>②</h3>
