@@ -833,7 +833,7 @@
     function uploadSQLTable(){
         let file = $("#upload")[0].files[0];
         let reader = new FileReader;
-        reader.readAsText(file,'Unicode');
+        reader.readAsText(file,'UTF-8');
         reader.onload = function(e){
             CreateSQLTableFromQuery(e.target.result);
         }
