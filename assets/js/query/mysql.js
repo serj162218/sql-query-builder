@@ -47,9 +47,9 @@
                 if(Object.keys(jointable['conditionUID']).length > 0){
                     for(j in jointable['conditionUID']){
                         let condition = jointable['conditionUID'][j];
-                        if(condition == null) Selected.push(`${table.name}.${table.columns[j].name} = ?`);
+                        if(typeof condition == "string") Selected.push(`${table.name}.${table.columns[j].name} = '${condition}'`);
                         else{
-                            let [tableX,ColumnX] = jointable['conditionUID'][j].split('-');
+                            let [tableX,ColumnX] = condition;
                             Selected.push(`${table.name}.${table.columns[j].name} = ${TableList[tableX].name}.${TableList[tableX].columns[ColumnX].name}`);
                         }
                     }
@@ -63,16 +63,22 @@
                     Query.push("1=1");
                 }
             }
-            if(conditionUID.length>0){
-                Query.push(` WHERE`);
+            Query.push(`WHERE`);
+            Selected = [];
+            if(Object.keys(conditionUID).length>0){
                 for(j in conditionUID){
-                    let index = conditionUID[j];
-                    let column = table.columns[index];
-                    if(j == conditionUID.length-1)
-                        Query.push(`${table.name}.${column.name} = ?`);
-                    else
-                        Query.push(`${table.name}.${column.name} = ? AND`);
+                    let Parameter = conditionUID[j];
+                    let column = table.columns[j];
+                    Selected.push(`${table.name}.${column.name} = '${Parameter}'`);
                 }
+                for(i in Selected){
+                    if(i == Selected.length-1)
+                        Query.push(Selected[i]);
+                    else
+                        Query.push(Selected[i]+" AND");
+                }
+            }else{
+                Query.push("1")
             }
             return Query.join(" ");
         },

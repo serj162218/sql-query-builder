@@ -213,7 +213,7 @@
                 let [tableX,columnX] = e.split('-');
                 let index = JoinTableTidList.indexOf(Number(tableX));
                 let jointable = JoinTableList[index];
-                jointable['conditionUID'][columnX] = null;
+                jointable['conditionUID'][columnX] = "?";
 
                 table.element[`JoinCompareCondition${e}`].remove();
                 delete table.element[`JoinCompareCondition${e}`];
@@ -224,8 +224,8 @@
             if(MainTable.tid == table.id){
                 if($.inArray(uid,MainTable['uid']) != -1)
                     MainTable['uid'].splice(MainTable['uid'].indexOf(uid),1);
-                if($.inArray(uid,MainTable['conditionUID']) != -1)
-                    MainTable['conditionUID'].splice(MainTable['conditionUID'].indexOf(uid),1);
+                if(typeof MainTable['conditionUID'][uid] != 'undefined')
+                    delete MainTable['conditionUID'][uid];
                     
             }
             
@@ -251,7 +251,7 @@
     const MainTable = {
         tid: -1,
         uid: [],
-        conditionUID:[],
+        conditionUID:{},
     };
     const SelectedElement = {
         type : null,
@@ -368,7 +368,7 @@
                     col.element['MainCondition'].remove();
             }
             MainTable['uid'] = [];
-            MainTable['conditionUID'] = [];
+            MainTable['conditionUID'] = {};
         }
         MainTable['tid']=tid;
         $(SelectedElement.element).children("[data-name=TitleSpan]").html(element);
@@ -433,8 +433,8 @@
         let table = TableList[tid];
         let column = table['columns'][uid];
         if(MainTable['tid'] != tid) return;
-        if($.inArray(uid,MainTable['conditionUID']) != -1) return;
-        MainTable['conditionUID'].push(uid);
+        if(typeof MainTable['conditionUID'][uid] != 'undefined') return;
+        MainTable['conditionUID'][uid] = "?";
         element.children("[data-type=text]").text(drag.val());
         column.setElement(element,"MainCondition");
         $(SelectedElement.element).children("[data-name=ConditionText]").after(element);
@@ -452,7 +452,7 @@
         });
         if(jointable['tid'] != tid) return;
         if(typeof jointable['conditionUID'][uid] != 'undefined') return;
-        jointable['conditionUID'][uid]=null;
+        jointable['conditionUID'][uid]="?";
         element.children("[data-type=text]").text(drag.val());
         column.setElement(element,"JoinCondition");
         $(SelectedElement.element).children("[data-name=ConditionText]").after(element);
@@ -464,7 +464,6 @@
         let draguid = Number(drag.attr("uid"));
         let tid = Number($(SelectedElement.element).attr("tid"));
         let uid = Number($(SelectedElement.element).attr("uid"));
-        console.log(SelectedElement.element);
         let jointable = JoinTableList.find(function(item){
             return item.tid == Number(SelectedElement.Table.eq(0).attr("data-id"));
         });
@@ -472,7 +471,7 @@
         let elementForTable = ConditionCompareElement();
         let table = TableList[dragtid];
         let column = table['columns'][draguid];
-        let compareCondition = `${dragtid}-${draguid}`;
+        let compareCondition = [dragtid,draguid];
         if(tid == dragtid) return;
         if(MainTable.tid != dragtid && JoinTableTidList.indexOf(dragtid) == -1) return;
         jointable['conditionUID'][uid] = compareCondition;
@@ -481,6 +480,7 @@
         column.setElement(elementForColumn,`JoinCompareCondition${tid}-${uid}`);
         table.setElement(elementForTable,`JoinCompareCondition${tid}-${uid}`);
         $(SelectedElement.element).children("t").prepend(elementForTable,elementForColumn);
+        $(SelectedElement.element).find(".ConditionParameter").css("display","none");
         $(SelectedElement.element).attr("data-name","");
         $(SelectedElement.element.closest("[data-name=Condition]")).trigger("click");
     }
@@ -511,7 +511,7 @@
             }
         }
         MainTable['uid'] = [];
-        MainTable['conditionUID'] = [];
+        MainTable['conditionUID'] = {};
         MainTable['tid'] = -1;
     }
     let ColumnMainElement = function(){
@@ -538,7 +538,7 @@
         return $($.parseHTML(`
         <span data-name=Column>
             <text data-type="text"></text>
-            = ? 
+             = <input type="text" class="ConditionParameter">
             <button data-name="delete">X</button>
             <br>
         </span>
@@ -546,18 +546,22 @@
     }
 
     function SetConditionMainElementEvents(element,table,uid){
-        $(element.find("[data-name='delete']")).on('click',{table,uid},DeleteMainTableConditionElement);
+        $(element).find("[data-name='delete']").on('click',{table,uid},DeleteMainTableConditionElement);
+        $(element).find(".ConditionParameter").on('change',{uid},ChangeMainTableConditionParameter);
+
     }
     function DeleteMainTableConditionElement(event){
         let table = event.data.table;
         let uid = event.data.uid;
         let column = table['columns'][uid];
-        {
-            let index =  MainTable['conditionUID'].indexOf(uid)
-            if(index != -1) MainTable['conditionUID'].splice(index,1);
-        }
+        delete MainTable['conditionUID'][uid];
         column.element['MainCondition'].remove();
         delete column.element['MainCondition'];
+    }
+    function ChangeMainTableConditionParameter(event){
+        let uid = event.data.uid;
+        MainTable['conditionUID'][uid] = $(this).val();
+        $(this).attr("disabled","");
     }
     class JoinTable{
         static tid = 0;
@@ -645,8 +649,8 @@
             }
         }
         for(uid in jointable.conditionUID){ //jointable的條件已被放入關聯的資料表資料 要清除關於此資料表的JoinCompareCondition
-            if(jointable.conditionUID[uid] == null) continue;
-            let [tabletid,tableuid] = jointable.conditionUID[uid].split('-');
+            if(typeof jointable.conditionUID[uid] == "string") continue;
+            let [tabletid,tableuid] = jointable.conditionUID[uid];
             let table = TableList[tabletid];
             let column = table.columns[tableuid];
             delete table.element[`JoinCompareCondition${tid}-${uid}`];
@@ -695,14 +699,15 @@
         return $($.parseHTML(`
         <span data-name=Column>
             <text data-type="text"></text>
-            <span data-name="compareDropZone" tid=${tid} uid=${uid}>= <t> <span class="isBeforeText">?</span> </t></span>
+            <span data-name="compareDropZone" tid=${tid} uid=${uid}>= <t> <input type="text" class="ConditionParameter"></t></span>
             <button data-name="delete">X</button>
             <br>
         </span>
         `));
     }
     function SetConditionJoinElementEvents(element,jointable,table,uid){
-        $(element.find("[data-name='delete']")).on('click',{jointable,table,uid},DeleteJoinTableConditionElement);
+        element.find("[data-name='delete']").on('click',{jointable,table,uid},DeleteJoinTableConditionElement);
+        element.find(".ConditionParameter").on('change',{jointable,uid},ChangeJoinTableConditionParameter);
     }
     function DeleteJoinTableConditionElement(event){
         let jointable = event.data.jointable;
@@ -714,10 +719,10 @@
         delete column.element['JoinCondition'];
             //jointable的條件已被放入關聯的資料表資料 要清除關於此資料表的JoinCompareCondition
         if(typeof jointable.conditionUID[uid] != "undefined"){
-            if(jointable.conditionUID[uid] == null){
+            if(typeof jointable.conditionUID[uid] == "string"){
                 delete jointable['conditionUID'][uid];
             }else{
-                let [tabletid,tableuid] = jointable.conditionUID[uid].split('-');
+                let [tabletid,tableuid] = jointable.conditionUID[uid];
                 let table = TableList[tabletid];
                 let column = table.columns[tableuid];
                 delete table.element[`JoinCompareCondition${tid}-${uid}`];
@@ -725,6 +730,14 @@
                 delete jointable['conditionUID'][uid];
             }
         }
+    }
+    function ChangeJoinTableConditionParameter(event){
+        let jointable = event.data.jointable;
+        let uid = event.data.uid;
+        jointable.conditionUID[uid] = $(this).val();
+        $(this).attr("disabled","");
+        $(SelectedElement.element).attr("data-name","");
+        $(SelectedElement.element.closest("[data-name=Condition]")).trigger("click");
     }
     let ConditionCompareElement = function(){
         return $($.parseHTML(`
@@ -873,4 +886,5 @@
         }
         return token;
     }
+    console.log(JoinTableList);
 })(this);
