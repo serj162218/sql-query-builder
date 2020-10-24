@@ -561,7 +561,6 @@
     function ChangeMainTableConditionParameter(event){
         let uid = event.data.uid;
         MainTable['conditionUID'][uid] = $(this).val();
-        $(this).attr("disabled","");
     }
     class JoinTable{
         static tid = 0;
@@ -735,7 +734,6 @@
         let jointable = event.data.jointable;
         let uid = event.data.uid;
         jointable.conditionUID[uid] = $(this).val();
-        $(this).attr("disabled","");
         $(SelectedElement.element).attr("data-name","");
         $(SelectedElement.element.closest("[data-name=Condition]")).trigger("click");
     }
