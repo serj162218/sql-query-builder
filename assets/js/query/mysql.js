@@ -1,12 +1,20 @@
 ;
 (function(global,Query){
     let [MainTable,TableList,JoinTableList] = [Query[0],Query[1],Query[2]];
+    let msg = {
+        text:"",
+        status:-1,
+    };
     Query['mysql'] = {
         SELECT : ()=>{
             let Query = ['SELECT'];
             let Selected = [];
             let tid = MainTable.tid;
-            if(tid == -1) return "請選擇主要的資料表";
+            if(tid == -1){
+                msg.status = -1;
+                msg.text="請選擇主要的資料表";
+                return msg;
+            }
             let uid = MainTable.uid;
             let conditionUID = MainTable.conditionUID;
             let table = TableList[tid];
@@ -80,13 +88,19 @@
             }else{
                 Query.push("1")
             }
-            return Query.join(" ");
+            msg.status = 1;
+            msg.text = Query.join(" ");
+            return msg;
         },
         INSERT : ()=>{
             let Query = ['INSERT INTO'];
             let Selected = [];
             let tid = MainTable.tid;
-            if(tid == -1) return "請選擇主要的資料表";
+            if(tid == -1){
+                msg.status = -1;
+                msg.text="請選擇主要的資料表";
+                return msg;
+            }
             let uid = MainTable.uid;
             let table = TableList[tid];
             
@@ -126,13 +140,19 @@
                 }
                 Query.push(")");
             }
-            return Query.join(" ");
+            msg.status = 1;
+            msg.text = Query.join(" ");
+            return msg;
         },
         DELETE : ()=>{
             let Query = ['DELETE'];
             let Selected = [];
             let tid = MainTable.tid;
-            if(tid == -1) return "請選擇主要的資料表";
+            if(tid == -1){
+                msg.status = -1;
+                msg.text="請選擇主要的資料表";
+                return msg;
+            }
             let uid = MainTable.uid;
             let conditionUID = MainTable.conditionUID;
             let table = TableList[tid];
@@ -204,13 +224,19 @@
             }else{
                 alert("WHERE 條件式記得要加哦！這樣才會只更新特定某(幾)筆資料，不然全部的資料都會更改。");
             }
-            return Query.join(" ");
+            msg.status = 1;
+            msg.text = Query.join(" ");
+            return msg;
         },
         UPDATE : ()=>{
             let Query = ['UPDATE'];
             let Selected = [];
             let tid = MainTable.tid;
-            if(tid == -1) return "請選擇主要的資料表";
+            if(tid == -1){
+                msg.status = -1;
+                msg.text="請選擇主要的資料表";
+                return msg;
+            }
             let uid = MainTable.uid;
             let conditionUID = MainTable.conditionUID;
             let table = TableList[tid];
@@ -265,7 +291,11 @@
                 if(LengthBeforeSelectedChanged!=Selected.length) flag[1] = false;
                 LengthBeforeSelectedChanged=Selected.length;
             }
-            if(flag[0]&&flag[1]) return "Error UPDATE至少要選擇一項要更新的欄位";
+            if(flag[0]&&flag[1]) {
+                msg.status = -1;
+                msg.text=" UPDATE至少要選擇一項要更新的欄位";
+                return msg;
+            }
             Query.push("SET");
             for(i in Selected){
                 if(i == Selected.length-1)
@@ -287,7 +317,9 @@
             }else{
                 alert("WHERE 條件式記得要加哦！這樣才會只更新特定某(幾)筆資料，不然全部的資料都會更改。");
             }
-            return Query.join(" ");
+            msg.status = 1;
+            msg.text = Query.join(" ");
+            return msg;
         }
     };
 })(this,Query);

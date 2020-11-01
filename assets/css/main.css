@@ -39,3 +39,7 @@
 .HideButton{
     display:none;
 }
+#ClipBoard{
+    left:-50%;
+    position:absolute;
+}

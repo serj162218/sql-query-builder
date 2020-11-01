@@ -819,23 +819,47 @@
     function QueryForSELECT(event){
         let database = event.data.DataBaseName;
         let Query = global.Query[database];
-        $(`#${database} #${database}SELECT`).html(Query.SELECT());
+        let sql = $(`#${database} #${database}SELECT`);
+        let msg = Query.SELECT();
+        AfterCreateQuery(sql,msg);
     }
     function QueryForUPDATE(event){
         let database = event.data.DataBaseName;
         let Query = global.Query[database];
-        $(`#${database} #${database}UPDATE`).html(Query.UPDATE());
+        let sql = $(`#${database} #${database}UPDATE`);
+        let msg = Query.UPDATE();
+        AfterCreateQuery(sql,msg);
     }
     function QueryForINSERT(event){
         let database = event.data.DataBaseName;
         let Query = global.Query[database];
-        $(`#${database} #${database}INSERT`).html(Query.INSERT());
+        let sql = $(`#${database} #${database}INSERT`);
+        let msg = Query.INSERT();
+        AfterCreateQuery(sql,msg);
     }
     function QueryForDELETE(event){
         let database = event.data.DataBaseName;
         let Query = global.Query[database];
-        $(`#${database} #${database}DELETE`).html(Query.DELETE());
+        let sql = $(`#${database} #${database}DELETE`);
+        let msg = Query.DELETE();
+        AfterCreateQuery(sql,msg);
     }
+    function AfterCreateQuery(sql,msg){
+        sql.html(msg.text);
+        $("#ClipBoard").val(msg.text);
+        if(msg.status == -1) {
+            return -1;
+        }
+        copy();
+        sql.append(copyRemind);
+    }
+    function copy(){
+        var copyText = document.getElementById("ClipBoard");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+    }
+    let copyRemind = $($.parseHTML(`<span id="copyRemind"><br>指令已複製至剪貼簿！</span>`));
     global.Query = [MainTable,TableList,JoinTableList];
     console.log(global.Query);
     $().ready(function(){
