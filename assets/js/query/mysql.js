@@ -153,35 +153,8 @@
                 msg.text="請選擇主要的資料表";
                 return msg;
             }
-            let uid = MainTable.uid;
             let conditionUID = MainTable.conditionUID;
             let table = TableList[tid];
-            let LengthBeforeSelectedChanged = 0;
-            for(i in uid){
-                let index = uid[i];
-                let column = table.columns[index];
-                Selected.push(`${table.name}.${column.name}`);
-            }
-            if(LengthBeforeSelectedChanged==Selected.length) Selected.push(`${table.name}.*`);
-            LengthBeforeSelectedChanged=Selected.length;
-            for(i in JoinTableList){
-                if(JoinTableList[i]['tid'] < 0) continue;
-                let table = TableList[JoinTableList[i]['tid']];
-                for(j in JoinTableList[i]['uid']){
-                    let index = JoinTableList[i]['uid'][j];
-                    let col = table.columns[index];
-                    Selected.push(`${table.name}.${col.name}`);
-                }
-                if(LengthBeforeSelectedChanged==Selected.length) Selected.push(`${table.name}.*`);
-                LengthBeforeSelectedChanged=Selected.length;
-            }
-            for(i in Selected){
-                if(i == Selected.length-1)
-                    Query.push(Selected[i]);
-                else
-                    Query.push(Selected[i]+",");
-
-            }
             Query.push(` FROM ${table.name}`);
             for(i in JoinTableList){
                 let jointable = JoinTableList[i];
@@ -194,9 +167,9 @@
                 if(Object.keys(jointable['conditionUID']).length > 0){
                     for(j in jointable['conditionUID']){
                         let condition = jointable['conditionUID'][j];
-                        if(condition == null) Selected.push(`${table.name}.${table.columns[j].name} = ?`);
+                        if(typeof condition == "string") Selected.push(`${table.name}.${table.columns[j].name} = '${condition}'`);
                         else{
-                            let [tableX,ColumnX] = jointable['conditionUID'][j].split('-');
+                            let [tableX,ColumnX] = condition;
                             Selected.push(`${table.name}.${table.columns[j].name} = ${TableList[tableX].name}.${TableList[tableX].columns[ColumnX].name}`);
                         }
                     }
@@ -211,18 +184,23 @@
                     alert("ON的條件式記得要加哦！這樣才會只更新特定某(幾)筆資料，不然全部的資料都會更改。");
                 }
             }
-            if(conditionUID.length>0){
-                Query.push(` WHERE`);
+            Query.push(`WHERE`);
+            Selected = [];
+            if(Object.keys(conditionUID).length>0){
                 for(j in conditionUID){
-                    let index = conditionUID[j];
-                    let column = table.columns[index];
-                    if(j == conditionUID.length-1)
-                        Query.push(`${table.name}.${column.name} = ?`);
+                    let Parameter = conditionUID[j];
+                    let column = table.columns[j];
+                    Selected.push(`${table.name}.${column.name} = '${Parameter}'`);
+                }
+                for(i in Selected){
+                    if(i == Selected.length-1)
+                        Query.push(Selected[i]);
                     else
-                        Query.push(`${table.name}.${column.name} = ? AND`);
+                        Query.push(Selected[i]+" AND");
                 }
             }else{
-                alert("WHERE 條件式記得要加哦！這樣才會只更新特定某(幾)筆資料，不然全部的資料都會更改。");
+                Query.push("1")
+                alert("WHERE的條件式記得要加哦！這樣才會只更新特定某(幾)筆資料，不然全部的資料都會更改。");
             }
             msg.status = 1;
             msg.text = Query.join(" ");
@@ -255,9 +233,9 @@
                 if(Object.keys(jointable['conditionUID']).length > 0){
                     for(j in jointable['conditionUID']){
                         let condition = jointable['conditionUID'][j];
-                        if(condition == null) Selected.push(`${table.name}.${table.columns[j].name} = ?`);
+                        if(typeof condition == "string") Selected.push(`${table.name}.${table.columns[j].name} = '${condition}'`);
                         else{
-                            let [tableX,ColumnX] = jointable['conditionUID'][j].split('-');
+                            let [tableX,ColumnX] = condition;
                             Selected.push(`${table.name}.${table.columns[j].name} = ${TableList[tableX].name}.${TableList[tableX].columns[ColumnX].name}`);
                         }
                     }
@@ -304,17 +282,22 @@
                     Query.push(Selected[i]+" = ?,");
 
             }
-            if(conditionUID.length>0){
-                Query.push(` WHERE`);
+            Query.push(`WHERE`);
+            Selected = [];
+            if(Object.keys(conditionUID).length>0){
                 for(j in conditionUID){
-                    let index = conditionUID[j];
-                    let column = table.columns[index];
-                    if(j == conditionUID.length-1)
-                        Query.push(`${table.name}.${column.name} = ?`);
+                    let Parameter = conditionUID[j];
+                    let column = table.columns[j];
+                    Selected.push(`${table.name}.${column.name} = '${Parameter}'`);
+                }
+                for(i in Selected){
+                    if(i == Selected.length-1)
+                        Query.push(Selected[i]);
                     else
-                        Query.push(`${table.name}.${column.name} = ? AND`);
+                        Query.push(Selected[i]+" AND");
                 }
             }else{
+                Query.push("1")
                 alert("WHERE 條件式記得要加哦！這樣才會只更新特定某(幾)筆資料，不然全部的資料都會更改。");
             }
             msg.status = 1;
