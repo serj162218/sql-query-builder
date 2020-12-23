@@ -751,13 +751,13 @@
         database.push({
             Name:'mysql',
             isUsable:true,
-        },{
+        }/*,{
             Name:'Codeigniter',
             isUsable:false,
         },{
             Name:'Laravel',
             isUsable:false,
-        }
+        }*/
         )
         let element = '<ul class="nav nav-tabs" irole="tablist">';
         database.forEach(function(e){
