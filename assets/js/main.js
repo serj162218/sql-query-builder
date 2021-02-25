@@ -874,7 +874,7 @@
         }
     }
     function CreateSQLTableFromQuery(query){
-        let result = pushToken(query,/CREATE TABLE(?= `)(.+\n)+/);
+        let result = pushToken(query,/CREATE TABLE (.+\n)+/);
         let tablesInfo = [];
         result.forEach(function(e){
             let token = pushToken(e,/`.+?`/);
